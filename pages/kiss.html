@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kiss Day 💋</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            font-family: 'Patrick Hand', cursive;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #87CEEB;
+        }
+
+        .back-btn {
+            position: absolute; top: 20px; left: 20px;
+            text-decoration: none; color: white;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 15px; border-radius: 20px;
+            font-weight: bold; z-index: 500;
+            backdrop-filter: blur(4px);
+        }
+
+        /* --- DYNAMIC SKY LAYERS --- */
+        .sky-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; transition: opacity 1.5s ease; pointer-events: none;
+        }
+        .sky-1 { background: linear-gradient(180deg, #4FC3F7 0%, #B3E5FC 100%); opacity: 1; } /* Afternoon */
+        .sky-2 { background: linear-gradient(180deg, #FF7043 0%, #FFCC80 60%, #B39DDB 100%); opacity: 0; } /* Sunset */
+        .sky-3 { background: linear-gradient(180deg, #4527A0 0%, #7B1FA2 60%, #F48FB1 100%); opacity: 0; } /* Twilight */
+        .sky-4 { background: linear-gradient(180deg, #1A237E 0%, #000000 80%); opacity: 0; } /* Night */
+
+        /* --- CELESTIAL BODIES (Z-index 2) --- */
+        .sun {
+            position: absolute; width: 100px; height: 100px;
+            background: #FFEB3B; border-radius: 50%;
+            box-shadow: 0 0 50px #FDD835;
+            top: 15%; right: 20%;
+            transition: all 1.5s ease; z-index: 2;
+        }
+        .sun.setting { top: 50%; background: #FF9800; box-shadow: 0 0 60px #FF5722; }
+        .sun.gone { top: 120%; }
+
+        .moon {
+            position: absolute; width: 80px; height: 80px;
+            background: #F5F5F5; border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255,255,255,0.9);
+            top: 120%; right: 20%;
+            transition: all 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 2;
+        }
+        .moon.rising { top: 15%; }
+        .crater { position: absolute; background: #E0E0E0; border-radius: 50%; opacity: 0.5; }
+
+        .stars {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background-image: radial-gradient(white 1px, transparent 1px), radial-gradient(white 2px, transparent 2px);
+            background-size: 50px 50px, 100px 100px;
+            background-position: 0 0, 25px 25px;
+            opacity: 0; transition: opacity 2s; z-index: 1;
+        }
+        .stars.visible { opacity: 1; }
+
+        /* --- CLOUDS (Z-index 3) --- */
+        .cloud {
+            position: absolute; background: #FFF; border-radius: 50px;
+            opacity: 0.8; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
+            animation: float linear infinite; z-index: 3;
+            transition: background 1.5s;
+        }
+        .cloud::after, .cloud::before {
+            content: ''; position: absolute; background: #FFF; border-radius: 50%;
+            transition: background 1.5s;
+        }
+        .cloud.sunset { background: #FFCCBC; } .cloud.sunset::after, .cloud.sunset::before { background: #FFCCBC; }
+        .cloud.dark { background: #5C6BC0; opacity: 0.4; } .cloud.dark::after, .cloud.dark::before { background: #5C6BC0; }
+        
+        .c1 { width: 120px; height: 40px; top: 20%; left: -120px; animation-duration: 40s; }
+        .c1::after { width: 50px; height: 50px; top: -25px; left: 20px; }
+        .c2 { width: 160px; height: 50px; top: 35%; left: -160px; animation-duration: 55s; animation-delay: 5s; }
+        .c2::after { width: 70px; height: 70px; top: -35px; left: 30px; } .c2::before { width: 40px; height: 40px; top: -15px; left: 100px; }
+        @keyframes float { to { transform: translateX(calc(100vw + 200px)); } }
+
+        /* --- REALISTIC LANDSCAPE (Z-index 4-6) --- */
+        .landscape-layer {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background-repeat: repeat-x; background-position: bottom;
+            transition: filter 1.5s ease; pointer-events: none;
+        }
+        /* Distant Hills */
+        .bg-hills {
+            height: 30%; z-index: 4; opacity: 0.8;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 300' preserveAspectRatio='none'%3E%3Cpath fill='%23546E7A' d='M0,100 Q250,0 500,100 T1000,50 L1000,300 L0,300 Z'/%3E%3C/svg%3E");
+        }
+        /* City Skyline */
+        .bg-city {
+            height: 25%; z-index: 5;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 250' preserveAspectRatio='none'%3E%3Cpath fill='%2337474F' d='M0,250 L50,250 L50,150 L80,150 L80,200 L120,200 L120,100 L180,100 L180,250 L220,250 L220,180 L280,180 L280,250 L350,250 L350,120 L420,120 L420,250 L1000,250 L0,250 Z'/%3E%3C/svg%3E");
+        }
+        /* City Windows (Light up at night) */
+        .city-lights {
+            height: 25%; z-index: 6; opacity: 0; transition: opacity 2s 1s;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 250' preserveAspectRatio='none'%3E%3Cg fill='%23FFEB3B'%3E%3Crect x='60' y='160' width='10' height='10'/%3E%3Crect x='60' y='180' width='10' height='10'/%3E%3Crect x='130' y='120' width='10' height='10'/%3E%3Crect x='150' y='140' width='10' height='10'/%3E%3Crect x='240' y='200' width='10' height='10'/%3E%3Crect x='370' y='140' width='10' height='10'/%3E%3Crect x='390' y='170' width='10' height='10'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        .city-lights.on { opacity: 0.8; }
+
+        /* Utility Poles */
+        .bg-pole {
+            position: absolute; bottom: -20px; z-index: 7; height: 75vh; width: auto;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); transition: filter 1.5s;
+        }
+        .pole-left { left: -40px; }
+        .pole-right { right: -40px; transform: scaleX(-1); }
+
+        /* Day/Night Filters for Landscape */
+        .sunset-filter { filter: brightness(0.7) sepia(0.4) hue-rotate(-10deg); }
+        .night-filter { filter: brightness(0.2) contrast(1.2) blue-shift(20%); }
+
+        /* --- THE STAGE (Birds & Wire) (Z-index 10) --- */
+        .stage-container {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 100%; max-width: 800px; height: 300px; z-index: 10;
+        }
+        .wire {
+            position: absolute; top: 65%; left: -20%; width: 140%; height: 3px;
+            background: #3E2723; transform: rotate(-2.5deg);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+        .bird {
+            position: absolute; width: 90px; height: 90px;
+            top: calc(65% - 85px); filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+            transition: transform 0.2s ease; will-change: left, right;
+        }
+        #bird-left { left: 20px; transform-origin: bottom center; }
+        #bird-right { right: 20px; transform-origin: bottom center; }
+
+        @media (min-width: 768px) { .bird { width: 120px; height: 120px; top: calc(65% - 115px); } }
+
+        /* SVG Colors & Anims */
+        .f-blue { fill: #29B6F6; } .f-d-blue { fill: #01579B; }
+        .f-pink { fill: #FF80AB; } .f-d-pink { fill: #880E4F; }
+        .beak { fill: #FFC107; } .eye { fill: #333; } .cheek { fill: rgba(255,255,255,0.5); }
+        .lean-forward { transform: rotate(20deg) !important; }
+        .lean-catch { transform: scaleX(-1) rotate(20deg) !important; }
+
+        /* --- UI CONTROLS (Z-index 100) --- */
+        .controls {
+            position: absolute; bottom: 30px; width: 100%;
+            display: flex; flex-direction: column; align-items: center; z-index: 100;
+        }
+        .meter-box {
+            width: 80%; max-width: 300px; height: 12px;
+            background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.8);
+            border-radius: 10px; margin-bottom: 20px; overflow: hidden;
+        }
+        .meter-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #FFEB3B, #FF5722); transition: width 0.3s;
+        }
+        .btn-wrapper { position: relative; width: 90px; height: 90px; }
+        .kiss-btn {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: #E91E63; border: 4px solid white; color: white; font-size: 2.5rem;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); transition: transform 0.1s;
+            position: relative; z-index: 2;
+        }
+        .kiss-btn:active { transform: scale(0.95); }
+        .charge-ring {
+            position: absolute; top: -5px; left: -5px; width: 100px; height: 100px;
+            transform: rotate(-90deg); z-index: 1; pointer-events: none;
+        }
+        .charge-path {
+            fill: none; stroke: #FFF; stroke-width: 4;
+            stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.1s linear;
+        }
+
+        .heart-projectile {
+            position: absolute; font-size: 2rem; z-index: 50; filter: drop-shadow(0 0 5px white);
+        }
+
+        /* --- FINAL CARD --- */
+        #final-msg {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(255, 255, 255, 0.95); padding: 30px;
+            border-radius: 20px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8); z-index: 300; border: 3px solid #C2185B;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); color: #333;
+        }
+        /* Add this to the style section */
+        .couple-photo {
+            width: 150px;           /* Increased size */
+            height: 150px;          /* Increased size */
+            object-fit: cover;      /* Ensures image fills the box perfectly */
+            border-radius: 20px;    /* Rounded corners (Soft Square) */
+            border: 5px solid #E91E63; /* Cute Pink border */
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white; /* Fallback if image loads slowly */}
+
+    </style>
+</head>
+<body>
+
+    <a href="../index.html" class="back-btn">← Home</a>
+
+    <div class="sky-layer sky-1" id="sky1"></div>
+    <div class="sky-layer sky-2" id="sky2"></div>
+    <div class="sky-layer sky-3" id="sky3"></div>
+    <div class="sky-layer sky-4" id="sky4"></div>
+    <div class="stars" id="stars"></div>
+    <div class="sun" id="sun"></div>
+    <div class="moon" id="moon">
+        <div class="crater" style="top:15px; left:15px; width:15px; height:15px;"></div>
+        <div class="crater" style="top:45px; left:35px; width:20px; height:20px;"></div>
+        <div class="crater" style="top:25px; left:50px; width:10px; height:10px;"></div>
+    </div>
+    <div class="cloud c1" id="cloud1"></div>
+    <div class="cloud c2" id="cloud2"></div>
+
+    <div class="landscape-layer bg-hills" id="hills"></div>
+    <div class="landscape-layer bg-city" id="city"></div>
+    <div class="landscape-layer city-lights" id="cityLights"></div>
+    
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 600'%3E%3Cdefs%3E%3ClinearGradient id='g' x2='1'%3E%3Cstop offset='0' stop-color='%233E2723'/%3E%3Cstop offset='1' stop-color='%235D4037'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='40' width='20' height='600' fill='url(%23g)'/%3E%3Crect y='100' width='80' height='15' fill='url(%23g)'/%3E%3Crect y='130' width='80' height='15' fill='url(%23g)'/%3E%3Crect y='160' width='60' height='15' x='10' fill='url(%23g)'/%3E%3C/svg%3E" class="bg-pole pole-left" id="poleL">
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 600'%3E%3Cdefs%3E%3ClinearGradient id='g' x2='1'%3E%3Cstop offset='0' stop-color='%233E2723'/%3E%3Cstop offset='1' stop-color='%235D4037'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='40' width='20' height='600' fill='url(%23g)'/%3E%3Crect y='100' width='80' height='15' fill='url(%23g)'/%3E%3Crect y='130' width='80' height='15' fill='url(%23g)'/%3E%3Crect y='160' width='60' height='15' x='10' fill='url(%23g)'/%3E%3C/svg%3E" class="bg-pole pole-right" id="poleR">
+
+
+    <div class="stage-container" id="stage">
+        <div class="wire" id="wire"></div>
+        
+        <div class="bird" id="bird-left">
+            <svg viewBox="0 0 100 100">
+                <path d="M10,65 L30,65 L20,85 Z" class="f-d-blue" />
+                <path d="M30,35 Q20,85 50,90 Q80,85 80,45 Q80,15 55,15 Q30,15 30,35" class="f-blue" />
+                <path d="M35,55 Q25,85 55,75 Q65,65 55,55" class="f-d-blue" />
+                <path d="M80,40 L95,45 L80,50" class="beak" />
+                <circle cx="65" cy="35" r="4" class="eye" />
+                <circle cx="70" cy="45" r="5" class="cheek" />
+                <path d="M45,90 L45,100 M55,90 L55,100" stroke="#3E2723" stroke-width="3" />
+            </svg>
+        </div>
+
+        <div class="bird" id="bird-right" style="transform: scaleX(-1);">
+            <svg viewBox="0 0 100 100">
+                <path d="M10,65 L30,65 L20,85 Z" class="f-d-pink" />
+                <path d="M30,35 Q20,85 50,90 Q80,85 80,45 Q80,15 55,15 Q30,15 30,35" class="f-pink" />
+                <path d="M35,55 Q25,85 55,75 Q65,65 55,55" class="f-d-pink" />
+                <path d="M80,40 L95,45 L80,50" class="beak" />
+                <circle cx="65" cy="35" r="4" class="eye" />
+                <path d="M62,30 L60,25 M65,29 L65,23" stroke="#333" stroke-width="2" />
+                <circle cx="70" cy="45" r="5" class="cheek" />
+                <path d="M45,90 L45,100 M55,90 L55,100" stroke="#3E2723" stroke-width="3" />
+            </svg>
+        </div>
+    </div>
+
+    <div class="controls" id="controls">
+        <div class="meter-box"><div class="meter-fill" id="fill-bar"></div></div>
+        <div class="btn-wrapper">
+            <svg class="charge-ring"><circle class="charge-path" id="charge-circle" cx="50" cy="50" r="45" /></svg>
+            <div class="kiss-btn" id="kiss-btn">💋</div>
+        </div>
+        <p style="color:white; margin-top:10px; font-weight:bold; text-shadow:0 1px 3px rgba(0,0,0,0.8);">Hold & Release!</p>
+    </div>
+
+    <div id="final-msg">
+        <h2 style="color: #C2185B; margin:0;">A Kiss Under the Moon 🌙</h2>
+        <p style="font-size: 1.2rem; margin: 15px 0;">
+            I wish I could kiss you goodnight, every single night.<br>
+            <b>Happy Kiss Day!</b>
+        </p>
+    </div>
+    <audio id="bg-music" loop>
+    <source src="../assets/music.mp3" type="audio/mpeg"> </audio>
+
+    <script>
+        const btn = document.getElementById('kiss-btn');
+        const chargeCircle = document.getElementById('charge-circle');
+        const fillBar = document.getElementById('fill-bar');
+        const birdLeft = document.getElementById('bird-left');
+        const birdRight = document.getElementById('bird-right');
+        const stage = document.getElementById('stage');
+        const wire = document.getElementById('wire');
+        
+        // Environment Elements
+        const sun = document.getElementById('sun');
+        const moon = document.getElementById('moon');
+        const stars = document.getElementById('stars');
+        const sky2 = document.getElementById('sky2');
+        const sky3 = document.getElementById('sky3');
+        const sky4 = document.getElementById('sky4');
+        const clouds = [document.getElementById('cloud1'), document.getElementById('cloud2')];
+        const landscape = [document.getElementById('hills'), document.getElementById('city'), document.getElementById('poleL'), document.getElementById('poleR')];
+        const cityLights = document.getElementById('cityLights');
+
+        let loveLevel = 0;
+        let isCharging = false;
+        let chargeStart = 0;
+        let isDone = false;
+        let animationFrame;
+        const CIRCLE_FULL = 283;
+        chargeCircle.style.strokeDashoffset = CIRCLE_FULL;
+
+        function updatePositions() {
+            const stageWidth = stage.offsetWidth;
+            const birdWidth = birdLeft.offsetWidth;
+            const startDist = 20;
+            const endDist = (stageWidth / 2) - birdWidth + 10;
+            const currentDist = startDist + ((endDist - startDist) * (loveLevel / 100));
+            birdLeft.style.left = currentDist + 'px';
+            birdRight.style.right = currentDist + 'px';
+        }
+        updatePositions();
+        window.addEventListener('resize', updatePositions);
+
+        function startCharge(e) {
+            e.preventDefault(); if (isDone) return;
+            isCharging = true; chargeStart = Date.now();
+            btn.style.transform = "scale(0.9)";
+            birdLeft.style.transform = "rotate(-15deg)";
+            tick();
+        }
+
+        function endCharge(e) {
+            e.preventDefault(); if (!isCharging || isDone) return;
+            isCharging = false; cancelAnimationFrame(animationFrame);
+            btn.style.transform = "scale(1)";
+            chargeCircle.style.strokeDashoffset = CIRCLE_FULL;
+            birdLeft.style.transform = "rotate(0deg)";
+            const duration = Math.min(Date.now() - chargeStart, 1500);
+            launchKiss(duration / 1500);
+        }
+
+        function tick() {
+            if (!isCharging) return;
+            const duration = Math.min(Date.now() - chargeStart, 1500);
+            chargeCircle.style.strokeDashoffset = CIRCLE_FULL - ((duration / 1500) * CIRCLE_FULL);
+            animationFrame = requestAnimationFrame(tick);
+        }
+
+        function launchKiss(power) {
+            const size = 1.5 + (power * 2);
+            const icon = power > 0.8 ? "💖" : "💋";
+            const k = document.createElement('div');
+            k.classList.add('heart-projectile');
+            k.innerText = icon;
+            k.style.fontSize = size + 'rem';
+            
+            const birdWidth = birdLeft.offsetWidth;
+            const startX = parseFloat(birdLeft.style.left) + birdWidth - 25;
+            const startY = 135;
+            k.style.left = startX + 'px'; k.style.top = startY + 'px';
+            stage.appendChild(k);
+
+            const targetX = stage.offsetWidth - parseFloat(birdRight.style.right) - birdWidth + 25;
+            const anim = k.animate([
+                { transform: `translate(0, 0) scale(1)` },
+                { transform: `translate(${(targetX - startX)/2}px, -120px) scale(1.2)` },
+                { transform: `translate(${targetX - startX}px, 0) scale(1)` }
+            ], { duration: 600, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' });
+
+            anim.onfinish = () => { k.remove(); hitTarget(power); };
+        }
+
+        function hitTarget(power) {
+            loveLevel = Math.min(loveLevel + (power * 25) + 5, 100);
+            fillBar.style.width = loveLevel + '%';
+            updatePositions();
+            updateEnvironment();
+
+            birdRight.classList.add('lean-catch');
+            setTimeout(() => birdRight.classList.remove('lean-catch'), 400);
+            wire.style.transform = "rotate(-2.5deg) translateY(3px)";
+            setTimeout(() => wire.style.transform = "rotate(-2.5deg)", 150);
+
+            if (loveLevel >= 100) startFinale();
+        }
+
+        function updateEnvironment() {
+            // 1. Sunset
+            if (loveLevel > 25) {
+                sky2.style.opacity = 1; sun.classList.add('setting');
+                clouds.forEach(c => c.classList.add('sunset'));
+                landscape.forEach(l => l.classList.add('sunset-filter'));
+            }
+            // 2. Twilight
+            if (loveLevel > 60) {
+                sky3.style.opacity = 1; sun.classList.add('gone');
+            }
+            // 3. Night
+            if (loveLevel > 85) {
+                sky4.style.opacity = 1; stars.classList.add('visible'); moon.classList.add('rising');
+                clouds.forEach(c => c.classList.add('dark'));
+                landscape.forEach(l => l.classList.remove('sunset-filter'));
+                landscape.forEach(l => l.classList.add('night-filter'));
+                cityLights.classList.add('on');
+            }
+        }
+
+        function startFinale() {
+            isDone = true;
+            document.getElementById('controls').style.opacity = '0';
+            // Final kiss pose
+            birdLeft.style.transform = "rotate(20deg)";
+            birdRight.style.transform = "scaleX(-1) rotate(20deg)";
+
+            setTimeout(() => {
+                confetti({ particleCount: 200, origin: { y: 0.6 }, colors: ['#E91E63', '#FFD54F', '#FFF'] });
+                document.getElementById('final-msg').style.transform = "translate(-50%, -50%) scale(1)";
+            }, 800);
+        }
+
+        btn.addEventListener('mousedown', startCharge); btn.addEventListener('touchstart', startCharge);
+        window.addEventListener('mouseup', endCharge); window.addEventListener('touchend', endCharge);
+        window.oncontextmenu = (e) => e.preventDefault();
+    </script>
+</body>
+</html>

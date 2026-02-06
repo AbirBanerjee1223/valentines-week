@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Our Valentine's Week ❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Sacramento&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #FF4081;
+            --secondary: #FF80AB;
+            --bg-gradient: linear-gradient(135deg, #FFF0F5 0%, #FFEBEE 100%);
+            --glass: rgba(255, 255, 255, 0.7);
+            --text-dark: #880E4F;
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Nunito', sans-serif;
+            background: var(--bg-gradient); color: var(--text-dark);
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* FLOATING HEARTS BG */
+        .bg-hearts { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .bg-heart { position: absolute; color: rgba(255, 64, 129, 0.1); font-size: 2rem; animation: floatUp linear infinite; }
+        @keyframes floatUp { 0% { transform: translateY(100vh); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
+
+        .container { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 20px; text-align: center; }
+
+        h1 {
+            font-family: 'Sacramento', cursive; font-size: 3.5rem; margin: 10px 0;
+            background: -webkit-linear-gradient(#E91E63, #FF4081); 
+            -webkit-background-clip: text; 
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(233,30,99,0.2));
+        }
+
+        .hero-countdown {
+            background: var(--glass); padding: 15px; border-radius: 20px; border: 2px solid #fff;
+            box-shadow: 0 10px 30px rgba(233, 30, 99, 0.15); margin-bottom: 30px; backdrop-filter: blur(10px);
+        }
+        .hero-label { font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase; color: #AD1457; }
+        .hero-timer { font-size: 2rem; font-weight: 800; color: #D81B60; font-family: 'Fredoka', sans-serif; }
+
+        .days-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 80px; }
+
+        /* CARD STYLES */
+        .day-card {
+            background: var(--glass); border-radius: 20px; padding: 15px; border: 2px solid white;
+            box-shadow: 0 8px 20px rgba(233, 30, 99, 0.1); transition: all 0.3s ease;
+            position: relative; overflow: hidden; text-decoration: none; color: inherit;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* LOCKED STATE */
+        .day-card.locked { filter: grayscale(100%); opacity: 0.8; cursor: pointer; background: rgba(255, 255, 255, 0.4); }
+        .day-card.locked::after { content: '🔒'; position: absolute; top: 10px; right: 10px; font-size: 1.2rem; }
+        
+        /* UNLOCKED STATE */
+        .day-card.unlocked { cursor: pointer; border-color: #F8BBD0; }
+        .day-card.unlocked:active { transform: scale(0.95); }
+        .day-card.unlocked:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(233, 30, 99, 0.2); }
+
+        .card-icon { font-size: 3rem; margin-bottom: 5px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        .card-title { font-family: 'Fredoka', sans-serif; font-size: 1.2rem; color: #880E4F; margin-bottom: 5px; }
+        
+        .card-status {
+            font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9); white-space: nowrap;
+        }
+        .status-open { color: #2E7D32; border: 1px solid #A5D6A7; }
+        .status-locked { color: #C62828; border: 1px solid #EF9A9A; letter-spacing: -0.5px; }
+
+        /* --- POPUP MODAL (Like your image) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000;
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 15px;
+            text-align: center; max-width: 85%; width: 320px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        
+        .modal-icon {
+            font-size: 3rem; color: #29B6F6; margin: 0 auto 15px auto;
+            border: 4px solid #29B6F6; width: 70px; height: 70px;
+            line-height: 65px; border-radius: 50%; display: block; font-family: sans-serif;
+        }
+        .modal-content h2 { color: #5D4037; font-family: 'Fredoka', sans-serif; margin: 10px 0; font-size: 1.8rem; }
+        .modal-content p { color: #777; font-size: 1.1rem; margin-bottom: 25px; line-height: 1.4; }
+        .modal-btn {
+            background: #D81B60; color: white; border: none;
+            padding: 12px 40px; border-radius: 8px;
+            font-size: 1.1rem; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(216, 27, 96, 0.3);
+            transition: transform 0.1s;
+        }
+        .modal-btn:active { transform: scale(0.95); }
+
+        /* MUSIC BUTTON */
+        .music-player {
+            position: fixed; bottom: 20px; right: 20px;
+            background: #D81B60; color: white; width: 50px; height: 50px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 5px 20px rgba(216, 27, 96, 0.4); cursor: pointer; z-index: 100;
+            border: 3px solid white; transition: transform 0.2s; animation: pulse-music 2s infinite;
+        }
+        .music-player:active { transform: scale(0.9); }
+        @keyframes pulse-music { 0% {box-shadow: 0 0 0 0 rgba(216, 27, 96, 0.7);} 70% {box-shadow: 0 0 0 15px rgba(216, 27, 96, 0);} 100% {box-shadow: 0 0 0 0 rgba(216, 27, 96, 0);} }
+    </style>
+</head>
+<body>
+
+    <div class="bg-hearts" id="bg-hearts"></div>
+
+    <div class="container">
+        <h1>Valentine's Week</h1>
+        
+        <div class="hero-countdown">
+            <div class="hero-label">Countdown to Big Day</div>
+            <div class="hero-timer" id="main-timer">Loading...</div>
+        </div>
+
+        <div class="days-grid">
+            <a href="pages/rose.html" class="day-card" id="card-7">
+                <div class="card-icon">🌹</div>
+                <div class="card-title">Rose Day</div>
+                <div class="card-status" id="status-7">Loading...</div>
+            </a>
+            <a href="pages/propose.html" class="day-card" id="card-8">
+                <div class="card-icon">💍</div>
+                <div class="card-title">Propose Day</div>
+                <div class="card-status" id="status-8">Loading...</div>
+            </a>
+            <a href="pages/chocolate.html" class="day-card" id="card-9">
+                <div class="card-icon">🍫</div>
+                <div class="card-title">Chocolate Day</div>
+                <div class="card-status" id="status-9">Loading...</div>
+            </a>
+            <a href="pages/teddy.html" class="day-card" id="card-10">
+                <div class="card-icon">🧸</div>
+                <div class="card-title">Teddy Day</div>
+                <div class="card-status" id="status-10">Loading...</div>
+            </a>
+            <a href="pages/promise.html" class="day-card" id="card-11">
+                <div class="card-icon">🤝</div>
+                <div class="card-title">Promise Day</div>
+                <div class="card-status" id="status-11">Loading...</div>
+            </a>
+            <a href="pages/hug.html" class="day-card" id="card-12">
+                <div class="card-icon">🤗</div>
+                <div class="card-title">Hug Day</div>
+                <div class="card-status" id="status-12">Loading...</div>
+            </a>
+            <a href="pages/kiss.html" class="day-card" id="card-13">
+                <div class="card-icon">💋</div>
+                <div class="card-title">Kiss Day</div>
+                <div class="card-status" id="status-13">Loading...</div>
+            </a>
+            <a href="pages/valentine.html" class="day-card" id="card-14" style="grid-column: span 2; background: linear-gradient(135deg, #fff 0%, #ffebee 100%); border-color: #ff4081;">
+                <div class="card-icon">💖</div>
+                <div class="card-title" style="font-size: 1.5rem;">Valentine's Day</div>
+                <div class="card-status" id="status-14">Loading...</div>
+            </a>
+        </div>
+    </div>
+
+    <div id="locked-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">i</div>
+            <h2>Not Yet! 🤫</h2>
+            <p id="modal-message">Wait until 12:00 AM on Rose Day!</p>
+            <button class="modal-btn" onclick="closePopup()">OK</button>
+        </div>
+    </div>
+
+    <div class="music-player" onclick="toggleMusic()">🎵</div>
+    <audio id="bg-music" loop>
+        <source src="assets/music.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // CONFIG
+        const currentYear = new Date().getFullYear();
+        // NOTE: Months are 0-indexed (Jan=0, Feb=1)
+        
+        const days = [
+            { id: 7, date: new Date(currentYear, 1, 7), link: 'pages/rose.html' },
+            { id: 8, date: new Date(currentYear, 1, 8), link: 'pages/propose.html' },
+            { id: 9, date: new Date(currentYear, 1, 9), link: 'pages/chocolate.html' },
+            { id: 10, date: new Date(currentYear, 1, 10), link: 'pages/teddy.html' },
+            { id: 11, date: new Date(currentYear, 1, 11), link: 'pages/promise.html' },
+            { id: 12, date: new Date(currentYear, 1, 12), link: 'pages/hug.html' },
+            { id: 13, date: new Date(currentYear, 1, 13), link: 'pages/kiss.html' },
+            { id: 14, date: new Date(currentYear, 1, 14), link: 'pages/valentine.html' }
+        ];
+
+        // Background Hearts
+        const bgContainer = document.getElementById('bg-hearts');
+        for(let i=0; i<15; i++) {
+            const h = document.createElement('div');
+            h.classList.add('bg-heart');
+            h.innerText = Math.random() > 0.5 ? "❤️" : "💕";
+            h.style.left = Math.random() * 100 + '%';
+            h.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            h.style.animationDuration = (Math.random() * 5 + 10) + 's';
+            h.style.animationDelay = Math.random() * 5 + 's';
+            bgContainer.appendChild(h);
+        }
+
+        // --- POPUP LOGIC ---
+        function showPopup(dayName) {
+            document.getElementById('modal-message').innerText = `Wait until 12:00 AM on ${dayName}!`;
+            document.getElementById('locked-modal').style.display = 'flex';
+        }
+        function closePopup() {
+            document.getElementById('locked-modal').style.display = 'none';
+        }
+
+        // --- TIMER LOGIC ---
+        function updateTimers() {
+            const now = new Date();
+            
+            // 1. Main Hero Timer
+            const valentineDate = new Date(currentYear, 1, 14);
+            const mainDiff = valentineDate - now;
+
+            if (mainDiff <= 0) {
+                document.getElementById('main-timer').innerText = "It's Today! ❤️";
+            } else {
+                const d = Math.floor(mainDiff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((mainDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((mainDiff % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('main-timer').innerText = `${d}d ${h}h ${m}m`;
+            }
+
+            // 2. Individual Cards
+            days.forEach(day => {
+                const card = document.getElementById(`card-${day.id}`);
+                const statusEl = document.getElementById(`status-${day.id}`);
+                const diff = day.date - now;
+                const dayName = card.querySelector('.card-title').innerText;
+
+                // Test Mode (Uncomment to unlock all):
+                // const now = new Date(2025, 1, 15); 
+
+                if (now >= day.date) {
+                    // UNLOCKED
+                    card.classList.add('unlocked');
+                    card.classList.remove('locked');
+                    card.href = day.link;
+                    card.onclick = null; // Allow default link behavior
+                    statusEl.innerText = "Open ❤️";
+                    statusEl.className = "card-status status-open";
+                } else {
+                    // LOCKED
+                    card.classList.add('locked');
+                    card.classList.remove('unlocked');
+                    card.removeAttribute('href');
+                    
+                    // Countdown with Minutes & Seconds
+                    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    
+                    // Concise display
+                    statusEl.innerText = `${d}d ${h}h ${m}m ${s}s`;
+                    statusEl.className = "card-status status-locked";
+
+                    // Add Popup Trigger
+                    card.onclick = (e) => {
+                        e.preventDefault();
+                        showPopup(dayName);
+                    };
+                }
+            });
+        }
+
+        setInterval(updateTimers, 1000);
+        updateTimers();
+
+        // --- MUSIC ---
+        const music = document.getElementById('bg-music');
+        
+        window.addEventListener('load', () => {
+            const savedTime = localStorage.getItem('musicTime');
+            const isPlaying = localStorage.getItem('musicPlaying');
+            if (savedTime) music.currentTime = parseFloat(savedTime);
+            if (isPlaying === 'true') music.play().catch(e => console.log("Click to play"));
+        });
+
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('musicTime', music.currentTime);
+            localStorage.setItem('musicPlaying', !music.paused);
+        });
+
+        function toggleMusic() {
+            if (music.paused) {
+                music.play();
+                localStorage.setItem('musicPlaying', 'true');
+            } else {
+                music.pause();
+                localStorage.setItem('musicPlaying', 'false');
+            }
+        }
+    </script>
+</body>
+</html>

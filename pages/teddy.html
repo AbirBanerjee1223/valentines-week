@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Teddy Day 🧸</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            /* Cozy Warm Gradient */
+            background: radial-gradient(circle at center, #FDFBF7 0%, #EFEBE9 100%);
+            font-family: 'Patrick Hand', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px; left: 20px;
+            text-decoration: none; color: #5D4037;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 15px; border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* --- THE STAGE --- */
+        .stage-container {
+            position: relative;
+            width: 340px;
+            height: 440px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            filter: drop-shadow(0 20px 30px rgba(93, 64, 55, 0.2)); 
+        }
+
+        /* --- STYLES FOR REALISM --- */
+        .stitch {
+            fill: none;
+            stroke: #3E2723;
+            stroke-width: 1;
+            stroke-dasharray: 4, 4; /* The sewing effect */
+            opacity: 0.3;
+        }
+
+        /* --- INTERACTIVE HINTS --- */
+        .interactive { cursor: pointer; }
+        
+        .pulse-zone {
+            animation: pulse-glow 2s infinite ease-in-out;
+            pointer-events: none;
+        }
+        @keyframes pulse-glow {
+            0% { opacity: 0; transform: scale(0.9); }
+            50% { opacity: 0.5; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.9); }
+        }
+
+        /* --- ANIMATIONS --- */
+        .wiggle { animation: wiggle-anim 0.6s ease-in-out; }
+        @keyframes wiggle-anim {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-3deg) scale(1.02); }
+            75% { transform: rotate(3deg) scale(1.02); }
+        }
+
+        .boop { animation: boop-anim 0.3s ease-out; }
+        @keyframes boop-anim { 
+            0% { transform: scale(1); } 
+            50% { transform: scale(0.9); } 
+            100% { transform: scale(1); } 
+        }
+
+        /* Floating Text */
+        .float-bubble {
+            position: absolute;
+            background: white;
+            color: #5D4037;
+            padding: 6px 15px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            pointer-events: none;
+            animation: floatFade 1.2s forwards;
+            border: 1px solid #D7CCC8;
+        }
+        .float-bubble::after {
+            content: ''; position: absolute; bottom: -6px; left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0; border-style: solid;
+            border-color: white transparent transparent transparent;
+        }
+        @keyframes floatFade {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            20% { transform: translateY(-10px) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1); opacity: 0; }
+        }
+
+        /* Pointer Hint */
+        #hint-finger {
+            position: absolute;
+            top: 55%; left: 60%;
+            font-size: 2.5rem;
+            animation: poke 1.5s infinite;
+            pointer-events: none;
+            opacity: 0.9;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+            transition: opacity 0.5s;
+        }
+        @keyframes poke {
+            0%, 100% { transform: translate(0, 0) rotate(-10deg); }
+            50% { transform: translate(-10px, -10px) rotate(-10deg); }
+        }
+
+        /* --- UI PANEL --- */
+        .ui-panel {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            border-radius: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 85%;
+            max-width: 340px;
+            margin-top: 10px;
+            z-index: 50;
+            transition: opacity 0.5s;
+            border: 1px solid white;
+            backdrop-filter: blur(10px);
+        }
+
+        .name-input {
+            border: 2px solid #D7CCC8;
+            padding: 10px;
+            border-radius: 12px;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.2rem;
+            width: 80%;
+            text-align: center;
+            color: #5D4037;
+            outline: none;
+            background: #FAFAFA;
+            margin-bottom: 15px;
+        }
+        .name-input:focus { border-color: #8D6E63; }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .item-btn {
+            background: white;
+            border: 2px solid #EFEBE9;
+            border-radius: 15px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 0 #D7CCC8;
+        }
+        .item-btn:active { transform: translateY(4px); box-shadow: none; }
+        .item-btn.selected {
+            background: #EFEBE9;
+            border-color: #8D6E63;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #6D4C41;
+        }
+
+        .finish-btn {
+            background: linear-gradient(135deg, #8D6E63, #5D4037);
+            color: white;
+            border: none;
+            padding: 12px 50px;
+            font-size: 1.4rem;
+            border-radius: 50px;
+            font-family: 'Patrick Hand', cursive;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(93, 64, 55, 0.3);
+            transition: transform 0.1s;
+        }
+        .finish-btn:active { transform: scale(0.95); }
+
+        /* Accessory Animation */
+        .acc { 
+            opacity: 0; 
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            transform-origin: center; 
+            transform: scale(0) translateY(20px); 
+        }
+        .acc.visible { opacity: 1; transform: scale(1) translateY(0); }
+
+        /* --- FINAL CARD --- */
+        #final-msg {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            width: 80%;
+            max-width: 300px;
+            border: 4px solid #8D6E63;
+            z-index: 100;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Hug Animation */
+        .hugging { transform: scale(1.6) translateY(50px); }
+        .hugging .arm-left { transform: rotate(35deg) translate(10px, -10px) !important; }
+        .hugging .arm-right { transform: rotate(-35deg) translate(-10px, -10px) !important; }
+
+        /* Add this to the style section */
+        .couple-photo {
+            width: 150px;           /* Increased size */
+            height: 150px;          /* Increased size */
+            object-fit: cover;      /* Ensures image fills the box perfectly */
+            border-radius: 20px;    /* Rounded corners (Soft Square) */
+            border: 5px solid #E91E63; /* Cute Pink border */
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white; /* Fallback if image loads slowly */}
+
+    </style>
+</head>
+<body>
+
+    <a href="../index.html" class="back-btn">← Home</a>
+    <div id="hint-finger">👆</div>
+
+    <div class="stage-container" id="stage">
+        <svg viewBox="0 0 340 440" id="bear-svg">
+            <defs>
+                <radialGradient id="furBase" cx="40%" cy="30%" r="80%">
+                    <stop offset="0%" stop-color="#A1887F" />
+                    <stop offset="100%" stop-color="#5D4037" />
+                </radialGradient>
+                <radialGradient id="snoutGrad" cx="50%" cy="40%" r="60%">
+                    <stop offset="0%" stop-color="#EFEBE9" />
+                    <stop offset="100%" stop-color="#D7CCC8" />
+                </radialGradient>
+                <linearGradient id="noseGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#5D4037" />
+                    <stop offset="100%" stop-color="#3E2723" />
+                </linearGradient>
+            </defs>
+
+            <g id="bear-group" style="transform-origin: center bottom;">
+                
+                <g>
+                    <circle cx="95" cy="125" r="32" fill="url(#furBase)" />
+                    <circle cx="95" cy="125" r="22" fill="#D7CCC8" opacity="0.6" />
+                    <circle cx="245" cy="125" r="32" fill="url(#furBase)" />
+                    <circle cx="245" cy="125" r="22" fill="#D7CCC8" opacity="0.6" />
+                </g>
+
+                <g class="arm-left" style="transform-origin: 100px 230px; transition: 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                    <path d="M75,230 Q50,260 60,300 Q80,320 100,300 L110,230 Z" fill="url(#furBase)" />
+                    <path d="M80,265 Q90,310 100,290" class="stitch" />
+                </g>
+                <g class="arm-right" style="transform-origin: 240px 230px; transition: 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                    <path d="M265,230 Q290,260 280,300 Q260,320 240,300 L230,230 Z" fill="url(#furBase)" />
+                    <path d="M260,265 Q250,310 240,290" class="stitch" />
+                </g>
+
+                <g>
+                    <ellipse cx="115" cy="380" rx="40" ry="32" fill="url(#furBase)" />
+                    <ellipse cx="115" cy="385" rx="20" ry="16" fill="#EFEBE9" />
+                    <ellipse cx="225" cy="380" rx="40" ry="32" fill="url(#furBase)" />
+                    <ellipse cx="225" cy="385" rx="20" ry="16" fill="#EFEBE9" />
+                </g>
+
+                <path d="M105,210 Q90,280 95,330 Q110,380 170,380 Q230,380 245,330 Q250,280 235,210" fill="url(#furBase)" />
+                
+                <path d="M170,260 L170,360" class="stitch" />
+
+                <g class="interactive" onclick="tickleTummy()">
+                    <ellipse cx="170" cy="300" rx="55" ry="65" fill="url(#snoutGrad)" />
+                    <ellipse cx="170" cy="300" rx="50" ry="60" fill="#BCAAA4" class="pulse-zone" />
+                </g>
+
+                <circle cx="170" cy="160" r="85" fill="url(#furBase)" />
+                
+                <ellipse cx="170" cy="190" rx="42" ry="34" fill="#3E2723" opacity="0.1" transform="translate(0, 5)" /> <ellipse cx="170" cy="190" rx="42" ry="34" fill="url(#snoutGrad)" />
+                
+                <g class="interactive" onclick="boopNose()">
+                    <path id="bear-nose" d="M158,178 Q170,172 182,178 Q182,190 170,195 Q158,190 158,178" fill="url(#noseGrad)" />
+                    <ellipse cx="165" cy="180" rx="6" ry="3" fill="white" opacity="0.4" /> </g>
+                
+                <path d="M170,195 L170,205 M160,210 Q170,220 180,210" stroke="#3E2723" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.8" />
+
+                <g>
+                    <circle cx="138" cy="155" r="10" fill="#212121" />
+                    <circle cx="138" cy="155" r="10" fill="url(#noseGrad)" opacity="0.5" />
+                    <circle cx="135" cy="152" r="3" fill="white" opacity="0.9" />
+                    <circle cx="202" cy="155" r="10" fill="#212121" />
+                    <circle cx="202" cy="155" r="10" fill="url(#noseGrad)" opacity="0.5" />
+                    <circle cx="199" cy="152" r="3" fill="white" opacity="0.9" />
+                </g>
+            </g>
+
+            <g id="acc-bow" class="acc">
+                <path d="M170,245 L135,225 L135,265 Z" fill="#D32F2F" />
+                <path d="M170,245 L205,225 L205,265 Z" fill="#D32F2F" />
+                <circle cx="170" cy="245" r="10" fill="#B71C1C" />
+                <path d="M170,245 L145,235 M170,245 L195,235" stroke="#B71C1C" stroke-width="2" />
+            </g>
+
+            <g id="acc-hat" class="acc">
+                <path d="M130,80 L210,80 L200,30 L140,30 Z" fill="#212121" />
+                <rect x="110" y="80" width="120" height="15" rx="5" fill="#212121" />
+                <rect x="130" y="70" width="80" height="10" fill="#D32F2F" />
+            </g>
+
+            <g id="acc-glasses" class="acc">
+                <g stroke="#212121" stroke-width="3" fill="none">
+                    <circle cx="138" cy="155" r="24" />
+                    <circle cx="202" cy="155" r="24" />
+                    <line x1="162" y1="155" x2="178" y2="155" />
+                </g>
+            </g>
+
+            <g id="acc-heart" class="acc">
+                <path d="M205,270 C205,270 180,250 180,270 C180,285 205,300 205,300 C205,300 230,285 230,270 C230,250 205,270 205,270" fill="#E91E63" stroke="#C2185B" stroke-width="2" />
+                <path d="M190,265 L190,270 M195,260 L195,265" stroke="white" stroke-width="1.5" stroke-linecap="round" />
+            </g>
+
+        </svg>
+    </div>
+
+    <div class="ui-panel" id="ui-panel">
+        <input type="text" id="bearName" class="name-input" placeholder="Give me a name..." maxlength="12">
+        
+        <div class="controls">
+            <div class="item-btn" onclick="toggle('bow', this)">🎀</div>
+            <div class="item-btn" onclick="toggle('hat', this)">🎩</div>
+            <div class="item-btn" onclick="toggle('glasses', this)">👓</div>
+            <div class="item-btn" onclick="toggle('heart', this)">❤️</div>
+        </div>
+
+        <button class="finish-btn" onclick="hugTime()">I Love Him! 🤗</button>
+    </div>
+
+    <div id="final-msg">
+        <h2 style="color: #5D4037; margin-top: 0;">Bear Hug! 🧸</h2>
+        <img src="../assets/teddy.jpg" class="couple-photo">
+        <p style="color: #666; font-size: 1.2rem; line-height: 1.5;">
+            <span id="display-name" style="color: #E91E63; font-weight: bold; font-size: 1.4rem;">Teddy</span> 
+            is sending you the biggest, warmest hug ever! <br>
+            Though I am jealous of all the hugs you get from others... <br><br>
+            <b>Happy Teddy Day!</b>
+        </p>
+    </div>
+    <audio id="bg-music" loop>
+    <source src="../assets/music.mp3" type="audio/mpeg"> </audio>
+
+    <script>
+        let hasInteracted = false;
+
+        function checkInteraction() {
+            if (!hasInteracted) {
+                hasInteracted = true;
+                document.getElementById('hint-finger').style.opacity = '0';
+                const pulses = document.querySelectorAll('.pulse-zone');
+                pulses.forEach(p => p.style.animation = 'none');
+            }
+        }
+
+        function toggle(item, btn) {
+            checkInteraction();
+            const el = document.getElementById('acc-' + item);
+            
+            if (el.classList.contains('visible')) {
+                el.classList.remove('visible');
+                btn.classList.remove('selected');
+            } else {
+                el.classList.add('visible');
+                btn.classList.add('selected');
+                
+                // Bounce Effect
+                const bear = document.getElementById('bear-group');
+                bear.style.transition = "transform 0.1s";
+                bear.style.transform = "scale(1.03)";
+                setTimeout(() => bear.style.transform = "scale(1)", 100);
+            }
+        }
+
+        function boopNose() {
+            checkInteraction();
+            const nose = document.getElementById('bear-nose');
+            
+            nose.parentElement.classList.add('boop');
+            setTimeout(() => nose.parentElement.classList.remove('boop'), 300);
+
+            showBubble("Boop! 🐽", 170, 140);
+        }
+
+        function tickleTummy() {
+            checkInteraction();
+            const bear = document.getElementById('bear-group');
+            
+            bear.style.transition = "transform 0.1s"; 
+            bear.classList.add('wiggle');
+            setTimeout(() => bear.classList.remove('wiggle'), 600);
+
+            showBubble("Hehe! 😆", 170, 240);
+        }
+
+        function showBubble(text, x, y) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('float-bubble');
+            bubble.innerText = text;
+            
+            bubble.style.left = (x / 340 * 100) + '%';
+            bubble.style.top = (y / 440 * 100) + '%';
+            
+            document.getElementById('stage').appendChild(bubble);
+            setTimeout(() => bubble.remove(), 1200);
+        }
+
+        function hugTime() {
+            checkInteraction();
+            const nameInput = document.getElementById('bearName').value;
+            if (nameInput.trim() !== "") {
+                document.getElementById('display-name').innerText = nameInput;
+            }
+
+            const ui = document.getElementById('ui-panel');
+            ui.style.opacity = '0';
+            ui.style.pointerEvents = 'none';
+
+            confetti({
+                particleCount: 200,
+                spread: 120,
+                origin: { y: 0.6 },
+                colors: ['#8D6E63', '#D7CCC8', '#FFFFFF']
+            });
+
+            document.getElementById('stage').classList.add('hugging');
+
+            setTimeout(() => {
+                document.getElementById('final-msg').style.transform = "translate(-50%, -50%) scale(1)";
+            }, 600);
+        }
+    </script>
+</body>
+</html>

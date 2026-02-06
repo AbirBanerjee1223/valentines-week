@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rose Day 🌹</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            background: radial-gradient(circle at center, #FFEBEE 0%, #FFCDD2 100%);
+            font-family: 'Patrick Hand', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px; left: 20px;
+            text-decoration: none; color: #880E4F;
+            background: rgba(255,255,255,0.6);
+            padding: 8px 15px; border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* SCENE CONTAINER */
+        /* Increased height to fit sprinkler better */
+        .scene {
+            position: relative;
+            width: 360px;
+            height: 550px; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 20px;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+        }
+
+        /* --- POT & PLANT STYLES --- */
+        .pot-body { fill: url(#potGradient); }
+        .pot-rim  { fill: url(#rimGradient); }
+        .soil     { fill: #3E2723; }
+
+        .stem-path {
+            fill: none;
+            stroke: url(#stemGradient);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 400;
+            stroke-dashoffset: 400;
+            transition: stroke-dashoffset 2s ease-out;
+        }
+        
+        .thorn { fill: #33691E; opacity: 0; transition: opacity 0.5s; }
+
+        .leaf-group {
+            transform-box: fill-box;
+            transform-origin: 0% 100%;
+            transform: scale(0);
+            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .leaf-shape { fill: url(#leafGradient); }
+        .leaf-vein  { stroke: #1B5E20; stroke-width: 1; fill: none; opacity: 0.4; }
+
+        .sepals {
+            fill: #33691E;
+            transform-box: fill-box;
+            transform-origin: center bottom;
+            transform: scale(0);
+            transition: transform 0.5s ease;
+        }
+
+        /* ROSE STYLES */
+        .rose-head { display: none; }
+        .layer-1 { fill: #8E0000; } 
+        .layer-2 { fill: #C62828; } 
+        .layer-3 { fill: #FF1744; } 
+        .layer-4 { fill: #FFCDD2; } 
+
+        .petal {
+            transform-box: fill-box;
+            transform-origin: center center;
+            opacity: 0;
+            transform: scale(0.5) rotate(-10deg);
+            transition: all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .plant-container {
+            transform-origin: bottom center;
+            animation: sway 4s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(2deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* --- WATERING CAN (SPRINKLER) --- */
+        #watering-can {
+            position: absolute;
+            top: 50px; 
+            right: 50px; /* Resting position */
+            font-size: 5rem;
+            opacity: 0;
+            transition: all 0.5s ease;
+            z-index: 20;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+        }
+        
+        /* Pouring State: Moves directly over the pot */
+        .pouring {
+            opacity: 1 !important;
+            top: 100px !important;  /* Lower it closer to plant */
+            right: 120px !important; /* Center it horizontally */
+            transform: rotate(-30deg);
+        }
+
+        .water-drop {
+            position: absolute;
+            background: #29B6F6;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            z-index: 15;
+            opacity: 0;
+            box-shadow: 0 0 5px rgba(41, 182, 246, 0.6);
+        }
+
+        /* UI CONTROLS - Better Spacing */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; /* Adds space between text and button */
+            margin-bottom: 30px;
+            z-index: 50;
+        }
+
+        #msg {
+            color: #880E4F;
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-height: 30px;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+        }
+
+        .btn-water {
+            background: linear-gradient(135deg, #4FC3F7, #0288D1);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(3, 169, 244, 0.4);
+            font-family: 'Patrick Hand', cursive;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn-water:active { transform: scale(0.95); box-shadow: 0 4px 10px rgba(3, 169, 244, 0.4); }
+        .btn-water:disabled { filter: grayscale(1); cursor: default; transform: none; }
+
+        /* FINAL CARD */
+        #final-msg {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 100;
+            width: 280px;
+            border: 2px solid #F48FB1;
+            backdrop-filter: blur(5px);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        /* Add this to the style section */
+        /* Add/Replace this in the <style> section of every HTML file */
+        .couple-photo {
+            width: 150px;           /* Increased size */
+            height: 150px;          /* Increased size */
+            object-fit: cover;      /* Ensures image fills the box perfectly */
+            border-radius: 20px;    /* Rounded corners (Soft Square) */
+            border: 5px solid #E91E63; /* Cute Pink border */
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white; /* Fallback if image loads slowly */}
+
+    </style>
+</head>
+<body>
+
+    <a href="../index.html" class="back-btn">← Home</a>
+
+    <div class="scene">
+        <div id="watering-can">🚿</div>
+        
+        <svg viewBox="0 0 300 550">
+            <defs>
+                <linearGradient id="potGradient" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stop-color="#795548"/>
+                    <stop offset="50%" stop-color="#A1887F"/>
+                    <stop offset="100%" stop-color="#5D4037"/>
+                </linearGradient>
+                <linearGradient id="rimGradient" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stop-color="#5D4037"/>
+                    <stop offset="50%" stop-color="#8D6E63"/>
+                    <stop offset="100%" stop-color="#4E342E"/>
+                </linearGradient>
+                <linearGradient id="stemGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#33691E"/>
+                    <stop offset="60%" stop-color="#64DD17"/>
+                    <stop offset="100%" stop-color="#33691E"/>
+                </linearGradient>
+                <linearGradient id="leafGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#4CAF50"/>
+                    <stop offset="100%" stop-color="#1B5E20"/>
+                </linearGradient>
+            </defs>
+
+            <g transform="translate(0, 50)">
+                <ellipse cx="150" cy="380" rx="50" ry="12" fill="#3E2723" opacity="0.5" />
+                <path class="pot-body" d="M110,380 L125,440 L175,440 L190,380 Z" />
+                <path class="pot-rim" d="M105,380 L195,380 L195,390 L105,390 Z" />
+                <ellipse class="soil" cx="150" cy="380" rx="45" ry="8" />
+            </g>
+
+            <g class="plant-container" id="plant-group">
+                <path id="stem" class="stem-path" d="M150,430 Q155,350 150,250" />
+                
+                <g id="thorns">
+                    <path class="thorn" d="M152,380 L160,375 L152,370 Z" />
+                    <path class="thorn" d="M148,320 L140,315 L148,310 Z" />
+                </g>
+
+                <g id="leaf-group">
+                    <g class="leaf-group" id="leaf1" style="transform-origin: 150px 330px;">
+                        <path class="leaf-shape" d="M150,330 Q110,330 100,290 Q140,300 150,330" />
+                        <path class="leaf-vein" d="M150,330 Q125,315 110,300" />
+                    </g>
+                    <g class="leaf-group" id="leaf2" style="transform-origin: 150px 290px;">
+                        <path class="leaf-shape" d="M150,290 Q190,290 200,250 Q160,260 150,290" />
+                        <path class="leaf-vein" d="M150,290 Q175,275 190,260" />
+                    </g>
+                </g>
+
+                <g transform="translate(150, 250)">
+                    <g id="sepals" class="sepals">
+                        <path d="M-5,0 L-10,-20 L0,-5 Z" fill="#33691E" />
+                        <path d="M5,0 L10,-20 L0,-5 Z" fill="#33691E" />
+                        <path d="M0,0 L0,-25 L0,-5 Z" fill="#558B2F" />
+                    </g>
+
+                    <path id="bud" class="sepals" d="M0,0 Q-15,-20 0,-40 Q15,-20 0,0" fill="#C62828" />
+
+                    <g id="rose-head" class="rose-head">
+                        <path class="petal layer-1" d="M0,0 m-40,10 q-20,-50 40,-60 q 60,10 40,60 q -20,50 -80,0" />
+                        <path class="petal layer-2" d="M0,0 m-30,0 q-10,-40 30,-50 q 40,10 30,50 q -10,40 -60,0" style="transition-delay: 0.1s" />
+                        <path class="petal layer-3" d="M0,0 m-20,-5 q-5,-30 20,-35 q 30,5 20,35 q -5,30 -40,0" style="transition-delay: 0.2s" />
+                        <circle class="petal layer-4" cx="0" cy="-5" r="8" style="transition-delay: 0.3s" />
+                    </g>
+                </g>
+            </g>
+        </svg>
+        
+        <div id="final-msg">
+            <h2 style="color:#D81B60; margin-top:0;">Hey my Beautiful Rose 🌹</h2>
+            <img src="../assets/rose.jpg" class="couple-photo">
+            <p style="color:#555; font-size:1.1rem;">
+                Every day with you feels like a garden in full bloom.<br>
+                Thank you for being the most beautiful part of my life. <br>
+                You bring color to my world and fragrance to my soul. <br>
+                <b>I Love You!</b>
+            </p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div id="msg">Let's help it grow... 🌱</div>
+        <button class="btn-water" id="waterBtn" onclick="waterAction()">Water Me 💧</button>
+    </div>
+    <audio id="bg-music" loop>
+    <source src="../assets/music.mp3" type="audio/mpeg"> </audio>
+
+    <script>
+        let stage = 0;
+        const btn = document.getElementById('waterBtn');
+        const can = document.getElementById('watering-can');
+        const msg = document.getElementById('msg');
+        
+        // Element References
+        const stem = document.getElementById('stem');
+        const thorns = document.querySelectorAll('.thorn');
+        const leaf1 = document.getElementById('leaf1');
+        const leaf2 = document.getElementById('leaf2');
+        const sepals = document.getElementById('sepals');
+        const bud = document.getElementById('bud');
+        const roseHead = document.getElementById('rose-head');
+        const petals = document.querySelectorAll('.petal');
+
+        const messages = [
+            "Sprinkle some love... 💧",
+            "Continue It's taking root! 🌱",
+            "Yayy Stronger every day! 🌿",
+            "A bud is forming! 🌷",
+            "Ready to bloom... ✨",
+            "Happy Rose Day! 🌹"
+        ];
+
+        function waterAction() {
+            if (stage >= 5) return;
+            btn.disabled = true;
+
+            // 1. Move Sprinkler Over Pot
+            can.classList.add('pouring');
+            
+            // 2. Create Drops (Delay slightly for move)
+            setTimeout(() => {
+                createDrops();
+            }, 300);
+
+            // 3. Grow and Reset
+            setTimeout(() => {
+                can.classList.remove('pouring');
+                stage++;
+                growPlant();
+
+                if (stage < 5) {
+                    msg.innerText = messages[stage];
+                    btn.disabled = false;
+                } else {
+                    msg.innerText = "";
+                    btn.style.display = 'none';
+                }
+            }, 1500);
+        }
+
+        function createDrops() {
+            const scene = document.querySelector('.scene');
+            // Create 10 drops
+            for(let i=0; i<10; i++){
+                setTimeout(() => {
+                    const drop = document.createElement('div');
+                    drop.classList.add('water-drop');
+                    scene.appendChild(drop);
+                    
+                    // Start position: CENTERED over pot now
+                    // Randomize X slightly (Centered around 180px)
+                    const randomX = Math.random() * 40 + 160; 
+                    drop.style.left = randomX + 'px';
+                    drop.style.top = '150px'; // Start below sprinkler
+
+                    // Animate falling
+                    drop.animate([
+                        { transform: 'translateY(0)', opacity: 1 },
+                        { transform: 'translateY(250px)', opacity: 0 }
+                    ], {
+                        duration: 700,
+                        easing: 'linear'
+                    });
+                    
+                    setTimeout(() => drop.remove(), 700);
+                }, i * 80); 
+            }
+        }
+
+        function growPlant() {
+            if (stage === 1) {
+                stem.style.strokeDashoffset = '200'; 
+            } else if (stage === 2) {
+                stem.style.strokeDashoffset = '0';
+                thorns.forEach(t => t.style.opacity = '1');
+            } else if (stage === 3) {
+                leaf1.style.transform = "scale(1)";
+                setTimeout(() => leaf2.style.transform = "scale(1)", 200);
+            } else if (stage === 4) {
+                sepals.style.transform = "scale(1)";
+                bud.style.transform = "scale(1)";
+            } else if (stage === 5) {
+                bud.style.opacity = '0';
+                roseHead.style.display = 'block';
+                setTimeout(() => {
+                    petals.forEach(p => {
+                        p.style.opacity = "1";
+                        p.style.transform = "scale(1) rotate(0deg)";
+                    });
+                    gameWin();
+                }, 50);
+            }
+        }
+
+        function gameWin() {
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#D50000', '#FFCDD2', '#FFF']
+            });
+            setTimeout(() => {
+                document.getElementById('final-msg').style.transform = "translate(-50%, -50%) scale(1)";
+            }, 1500);
+        }
+        /* --- MUSIC CONTINUATION SCRIPT --- */
+        const music = document.getElementById('music');
+
+        // 1. When page loads, check if there is a saved time
+        window.addEventListener('load', () => {
+            const savedTime = localStorage.getItem('musicTime');
+            const isPlaying = localStorage.getItem('musicPlaying');
+
+            if (savedTime) {
+                music.currentTime = parseFloat(savedTime);
+            }
+
+            // Only auto-play if it was playing before
+            if (isPlaying === 'true') {
+                music.play().catch(error => {
+                    console.log("Auto-play prevented by browser (user needs to click first)");
+                });
+            }
+        });
+
+        // 2. Before leaving the page, save the current time
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('musicTime', music.currentTime);
+            localStorage.setItem('musicPlaying', !music.paused);
+        });
+
+        // 3. Optional: Add a toggle button function if you haven't already
+        function toggleMusic() {
+            if (music.paused) {
+                music.play();
+                localStorage.setItem('musicPlaying', 'true');
+            } else {
+                music.pause();
+                localStorage.setItem('musicPlaying', 'false');
+            }
+        }
+    </script>
+</body>
+</html>

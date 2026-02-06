@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chocolate Day 🍫</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            background-color: #FFF3E0;
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+            touch-action: none; /* Critical for mobile games */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px; left: 20px;
+            text-decoration: none; color: #5D4037;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 15px; border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        /* HEADER */
+        .game-ui {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            z-index: 50;
+            pointer-events: none; 
+        }
+
+        h1 {
+            color: #5D4037;
+            margin: 0;
+            font-size: 2rem;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+        }
+
+        .score-board {
+            background: #5D4037;
+            color: #FFF;
+            padding: 5px 25px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(93, 64, 55, 0.3);
+            border: 2px solid #8D6E63;
+        }
+
+        /* PROGRESS BAR */
+        .progress-container {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            height: 25px;
+            background: #D7CCC8;
+            border-radius: 15px;
+            border: 3px solid #5D4037;
+            overflow: hidden;
+            z-index: 50;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #8D6E63, #5D4037);
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* FALLING ITEMS */
+        .falling-item {
+            position: absolute;
+            font-size: 3.5rem; /* Bigger for mobile visibility */
+            cursor: pointer;
+            top: -60px; 
+            z-index: 10;
+            /* Expanded Hitbox for easier tapping */
+            padding: 20px; 
+            margin: -20px; 
+        }
+
+        /* INTERACTIONS */
+        .pop {
+            animation: pop-anim 0.2s ease-out forwards;
+            pointer-events: none; /* Prevent double taps */
+        }
+
+        @keyframes pop-anim {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        /* SPLASH EFFECT (The Splat) */
+        .splat {
+            position: absolute;
+            bottom: 0;
+            width: 60px;
+            height: 20px;
+            background: #5D4037;
+            border-radius: 50%;
+            opacity: 0.6;
+            transform: scale(0);
+            animation: splat-anim 1s forwards;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        @keyframes splat-anim {
+            0% { transform: scale(0); opacity: 0.6; }
+            20% { transform: scale(1.5); opacity: 0.6; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* SCREENS */
+        #start-screen, #win-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        #start-screen {
+            background: rgba(255, 243, 224, 0.98);
+        }
+
+        #win-screen {
+            background: rgba(255, 255, 255, 0.95);
+            visibility: hidden; /* Hidden by default */
+        }
+
+        .btn-start {
+            background: linear-gradient(to bottom, #8D6E63, #5D4037);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.6rem;
+            border-radius: 50px;
+            font-family: 'Patrick Hand', cursive;
+            box-shadow: 0 6px 0 #3E2723;
+            margin-top: 25px;
+            transition: transform 0.1s;
+        }
+        .btn-start:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        /* Win Card Style */
+        .win-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 85%;
+            max-width: 320px;
+            border: 4px solid #5D4037;
+            transform: scale(0);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        /* Add this to the style section */
+        .couple-photo {
+            width: 150px;           /* Increased size */
+            height: 150px;          /* Increased size */
+            object-fit: cover;      /* Ensures image fills the box perfectly */
+            border-radius: 20px;    /* Rounded corners (Soft Square) */
+            border: 5px solid #E91E63; /* Cute Pink border */
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white; /* Fallback if image loads slowly */}
+
+    </style>
+</head>
+<body>
+
+    <a href="../index.html" class="back-btn">← Home</a>
+
+    <div class="game-ui">
+        <h1>Catch the Sweets!</h1>
+        <div class="score-board">
+            Score: <span id="score">0</span> / 15
+        </div>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-fill" id="progress"></div>
+    </div>
+
+    <div id="start-screen">
+        <div style="font-size: 5rem; margin-bottom: 10px; animation: float 2s infinite ease-in-out;">🍫</div>
+        <h1 style="font-size: 3rem; color: #5D4037; margin: 0;">Chocolate Day</h1>
+        <p style="font-size: 1.3rem; color: #8D6E63; text-align: center; padding: 0 30px; line-height: 1.4;">
+            Tap the falling chocolates before they hit the floor!
+        </p>
+        <button class="btn-start" onclick="startGame()">Play Now ▶</button>
+    </div>
+
+    <div id="win-screen">
+        <div class="win-card" id="win-card">
+            <div style="font-size: 4rem;">🎁</div>
+            <h2 style="color: #5D4037; margin: 10px 0;">You're so sweet!</h2>
+            <img src="../assets/chocolate.jpeg" class="couple-photo">
+            <p style="color: #666; font-size: 1.2rem;">
+                No chocolate in the world is as sweet as you, my love. <br>
+                That's why U are my favorite treat! 🍫❤️ <br>
+                PS: I might have a surprise for you later... 😉 <br>
+                <b>Happy Chocolate Day!</b> 🍫❤️
+            </p>
+        </div>
+    </div>
+
+    <div id="game-area"></div>
+    <audio id="bg-music" loop>
+    <source src="../assets/music.mp3" type="audio/mpeg"> </audio>
+
+    <script>
+        let score = 0;
+        let gameActive = false;
+        const targetScore = 15;
+        const gameArea = document.getElementById('game-area');
+        const scoreEl = document.getElementById('score');
+        const progressEl = document.getElementById('progress');
+        
+        const sweets = ['🍫', '🍬', '🍭', '🍪', '🍩', '🧁'];
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            gameActive = true;
+            score = 0;
+            updateUI();
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+
+            // Spawn rate: 600ms
+            const spawner = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(spawner);
+                    return;
+                }
+                createSweet();
+            }, 600);
+        }
+
+        function createSweet() {
+            const sweet = document.createElement('div');
+            sweet.classList.add('falling-item');
+            sweet.innerText = sweets[Math.floor(Math.random() * sweets.length)];
+            
+            // Safe Zone: Keep 10% away from edges so it's easy to tap
+            const randomX = Math.random() * 80 + 10; 
+            sweet.style.left = randomX + '%';
+            
+            // Events for Touch and Click
+            sweet.addEventListener('touchstart', (e) => eatSweet(e, sweet));
+            sweet.addEventListener('mousedown', (e) => eatSweet(e, sweet));
+
+            gameArea.appendChild(sweet);
+
+            // Falling Animation
+            let pos = -60;
+            // Random speed: faster is harder!
+            const speed = Math.random() * 3 + 3; 
+
+            const fallInterval = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(fallInterval);
+                    if(sweet.parentNode) sweet.remove();
+                    return;
+                }
+
+                pos += speed;
+                sweet.style.top = pos + 'px';
+
+                // MISS CONDITION (Hit Bottom)
+                if (pos > window.innerHeight - 50) { // -50 to hit "floor" visually
+                    clearInterval(fallInterval);
+                    createSplat(randomX); // Create the splash!
+                    if(sweet.parentNode) sweet.remove();
+                }
+            }, 20);
+        }
+
+        // The Splash Effect Function
+        function createSplat(x) {
+            const splat = document.createElement('div');
+            splat.classList.add('splat');
+            splat.style.left = x + '%';
+            // Randomize splat shape slightly for realism
+            splat.style.width = (40 + Math.random() * 30) + 'px';
+            splat.style.height = (15 + Math.random() * 10) + 'px';
+            
+            document.body.appendChild(splat);
+
+            // Cleanup splat div after animation
+            setTimeout(() => {
+                splat.remove();
+            }, 1000);
+        }
+
+        function eatSweet(e, element) {
+            e.preventDefault(); // Stop double-firing
+            e.stopPropagation(); // Stop event bubbling
+            
+            element.classList.add('pop');
+            
+            score++;
+            updateUI();
+
+            setTimeout(() => {
+                if(element.parentNode) element.remove();
+            }, 200);
+
+            if (score >= targetScore) {
+                gameWin();
+            }
+        }
+
+        function updateUI() {
+            scoreEl.innerText = score;
+            const percentage = (score / targetScore) * 100;
+            progressEl.style.width = percentage + '%';
+        }
+
+        function gameWin() {
+            gameActive = false;
+            
+            confetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#5D4037', '#8D6E63', '#D7CCC8']
+            });
+
+            const winScreen = document.getElementById('win-screen');
+            winScreen.style.visibility = 'visible';
+            
+            setTimeout(() => {
+                document.getElementById('win-card').style.transform = "scale(1)";
+            }, 100);
+        }
+        const music = document.getElementById('music');
+
+        // 1. When page loads, check if there is a saved time
+        window.addEventListener('load', () => {
+            const savedTime = localStorage.getItem('musicTime');
+            const isPlaying = localStorage.getItem('musicPlaying');
+
+            if (savedTime) {
+                music.currentTime = parseFloat(savedTime);
+            }
+
+            // Only auto-play if it was playing before
+            if (isPlaying === 'true') {
+                music.play().catch(error => {
+                    console.log("Auto-play prevented by browser (user needs to click first)");
+                });
+            }
+        });
+
+        // 2. Before leaving the page, save the current time
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('musicTime', music.currentTime);
+            localStorage.setItem('musicPlaying', !music.paused);
+        });
+
+        // 3. Optional: Add a toggle button function if you haven't already
+        function toggleMusic() {
+            if (music.paused) {
+                music.play();
+                localStorage.setItem('musicPlaying', 'true');
+            } else {
+                music.pause();
+                localStorage.setItem('musicPlaying', 'false');
+            }
+        }
+    </script>
+
+    <style>
+        /* Extra Animation for floating emoji on start screen */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</body>
+</html>

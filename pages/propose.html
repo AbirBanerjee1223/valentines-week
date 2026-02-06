@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Propose Day 💍</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #FFF8E1 0%, #FFCCBC 100%);
+            font-family: 'Patrick Hand', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px; left: 20px;
+            text-decoration: none; color: #E65100;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 15px; border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 200;
+        }
+
+        /* MAIN CONTENT */
+        #main-content {
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            position: relative; /* Context for z-index */
+            z-index: 50;
+        }
+
+        .ring-container {
+            font-size: 6rem;
+            animation: float 3s ease-in-out infinite;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.15));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        h1 {
+            color: #D84315;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        p {
+            color: #BF360C;
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+        }
+
+        /* BUTTON CONTAINER - VERTICAL STACK */
+        .btn-container {
+            display: flex;
+            flex-direction: column; /* Stack them vertically */
+            align-items: center;    /* Center them */
+            gap: 20px;              /* Space between Yes and No */
+            position: relative;
+            min-height: 150px;      /* Reserve space */
+        }
+
+        .btn {
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Patrick Hand', cursive;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* YES BUTTON - THE TRAP MASTER */
+        #btn-yes {
+            background: #FF6F00;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+            padding: 20px 60px; /* Big click area */
+            
+            /* CRITICAL: High Z-Index ensures it stays ON TOP */
+            z-index: 100; 
+            position: relative;
+        }
+        
+        #btn-yes:active { transform: scale(0.95); }
+
+        /* NO BUTTON - THE VICTIM */
+        #btn-no {
+            background: #FFF;
+            color: #757575;
+            border: 2px solid #E0E0E0;
+            font-size: 1.2rem;
+            padding: 10px 30px;
+            
+            /* CRITICAL: Low Z-Index ensures it goes BEHIND Yes */
+            z-index: 10; 
+        }
+
+        /* SUCCESS MESSAGE */
+        #success-msg {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 300; /* Highest layer */
+            width: 85%;
+            max-width: 320px;
+            border: 4px solid #FF6F00;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #success-msg .emoji {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+        /* Add this to the style section */
+        .couple-photo {
+            width: 150px;           /* Increased size */
+            height: 150px;          /* Increased size */
+            object-fit: cover;      /* Ensures image fills the box perfectly */
+            border-radius: 20px;    /* Rounded corners (Soft Square) */
+            border: 5px solid #E91E63; /* Cute Pink border */
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white; /* Fallback if image loads slowly */}
+
+    </style>
+</head>
+<body>
+
+    <a href="../index.html" class="back-btn">← Home</a>
+
+    <div id="main-content">
+        <div class="ring-container">💍</div>
+        <h1>Will you be my Valentine?</h1>
+        <p>Think carefully... 😉</p>
+
+        <div class="btn-container">
+            <button class="btn" id="btn-yes" onclick="acceptProposal()">YES! ❤️</button>
+            <button class="btn" id="btn-no">No</button>
+        </div>
+    </div>
+
+    <div id="success-msg">
+        <span class="emoji">💑</span>
+        <h2 style="color: #E65100; margin: 0 0 10px 0;">I knew it!</h2>
+        <img src="../assets/propose.jpeg" class="couple-photo">
+        <p style="color: #555; font-size: 1.1rem; margin: 0;">
+            Best decision ever. <br>
+            I love you so much! 💖<br>
+            Already knew you were the one for me. <br>
+        </p>
+    </div>
+    <audio id="bg-music" loop>
+    <source src="../assets/music.mp3" type="audio/mpeg"> </audio>
+
+    <script>
+        const btnNo = document.getElementById('btn-no');
+        const btnYes = document.getElementById('btn-yes');
+
+        function moveButton() {
+            // Get screen bounds
+            const maxWidth = window.innerWidth - btnNo.offsetWidth - 20;
+            const maxHeight = window.innerHeight - btnNo.offsetHeight - 20;
+
+            const randomX = Math.max(10, Math.random() * maxWidth);
+            const randomY = Math.max(50, Math.random() * maxHeight);
+
+            // Apply movement
+            btnNo.style.position = 'fixed'; // Allows it to float anywhere
+            btnNo.style.left = randomX + 'px';
+            btnNo.style.top = randomY + 'px';
+            
+            // Note: We keep z-index at 10 (defined in CSS). 
+            // Since YES is 100, if No moves to the center, it will hide BEHIND Yes.
+            
+            // Make YES grow
+            growYesButton();
+        }
+
+        let yesScale = 1;
+        function growYesButton() {
+            yesScale += 0.1;
+            btnYes.style.transform = `scale(${yesScale})`;
+        }
+
+        function acceptProposal() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#FF6F00', '#FFD54F', '#FFF']
+            });
+
+            document.getElementById('main-content').style.transition = "opacity 0.5s";
+            document.getElementById('main-content').style.opacity = '0';
+            
+            setTimeout(() => {
+                document.getElementById('success-msg').style.transform = "translate(-50%, -50%) scale(1)";
+            }, 500);
+        }
+
+        // EVENTS
+        btnNo.addEventListener('mouseover', moveButton);
+        btnNo.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            moveButton();
+        });
+        btnNo.addEventListener('click', function(e) {
+            e.preventDefault();
+            moveButton();
+        });
+        const music = document.getElementById('music');
+
+        // 1. When page loads, check if there is a saved time
+        window.addEventListener('load', () => {
+            const savedTime = localStorage.getItem('musicTime');
+            const isPlaying = localStorage.getItem('musicPlaying');
+
+            if (savedTime) {
+                music.currentTime = parseFloat(savedTime);
+            }
+
+            // Only auto-play if it was playing before
+            if (isPlaying === 'true') {
+                music.play().catch(error => {
+                    console.log("Auto-play prevented by browser (user needs to click first)");
+                });
+            }
+        });
+
+        // 2. Before leaving the page, save the current time
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('musicTime', music.currentTime);
+            localStorage.setItem('musicPlaying', !music.paused);
+        });
+
+        // 3. Optional: Add a toggle button function if you haven't already
+        function toggleMusic() {
+            if (music.paused) {
+                music.play();
+                localStorage.setItem('musicPlaying', 'true');
+            } else {
+                music.pause();
+                localStorage.setItem('musicPlaying', 'false');
+            }
+        }
+
+    </script>
+
+</body>
+</html>

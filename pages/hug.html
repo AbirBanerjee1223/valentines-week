@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hug Day 🤗</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            /* Soft Sky Gradient */
+            background: linear-gradient(180deg, #E3F2FD 0%, #F3E5F5 100%);
+            font-family: 'Patrick Hand', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px; left: 20px;
+            text-decoration: none; color: #5E35B1;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 15px; border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        h1 {
+            color: #5E35B1;
+            margin: 0 0 10px 0;
+            text-align: center;
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.8rem;
+            text-shadow: 3px 3px 0px white;
+            z-index: 10;
+        }
+
+        /* --- THE STAGE --- */
+        .stage {
+            position: relative;
+            width: 360px; /* Wider stage to ensure separation */
+            height: 280px;
+            /* Flex center is strictly for vertical alignment here */
+            display: flex;
+            align-items: flex-end; 
+            justify-content: center;
+            
+            border-bottom: 8px solid #81C784;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.2); /* Slight tint for depth */
+        }
+
+        /* Grass decoration */
+        .grass {
+            position: absolute;
+            bottom: -15px;
+            width: 100%;
+            height: 20px;
+            background: repeating-linear-gradient(45deg, #81C784 0, #81C784 10px, #66BB6A 10px, #66BB6A 20px);
+            border-radius: 0 0 10px 10px;
+        }
+
+        /* --- THE BUNNY WRAPPERS --- */
+        .bunny-wrapper {
+            position: absolute;
+            bottom: 0;
+            width: 120px;
+            height: 140px; /* Taller to fit name tag */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end; /* Align bunny to bottom */
+            transition: transform 0.05s linear; /* Responsive drag */
+            z-index: 5;
+        }
+
+        /* Position them at extreme edges initially */
+        #wrap-left { left: 0; }
+        #wrap-right { right: 0; }
+        
+        /* NAMES */
+        .name-tag {
+            background: white;
+            padding: 4px 15px; /* More padding */
+            border-radius: 15px;
+            margin-bottom: 5px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            border: 2px solid #EEE;
+            min-width: 80px; /* Ensure minimum width */
+            text-align: center;
+        }
+
+        .name-input {
+            border: none;
+            width: 100%;
+            text-align: center;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem; /* Larger font */
+            color: #5E35B1;
+            outline: none;
+            background: transparent;
+        }
+
+        /* Bunny SVG */
+        .bunny {
+            width: 100px;
+            height: 100px;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));
+        }
+
+        /* FACE ANIMATION */
+        .eyes { animation: blink 3s infinite; transform-origin: center; }
+        @keyframes blink { 0%, 48%, 52%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.1); } }
+
+        /* Blush opacity controlled by JS */
+        .blush { opacity: 0.3; transition: opacity 0.2s; }
+
+        /* --- SLIDER CONTROLS --- */
+        .controls-container {
+            width: 85%;
+            max-width: 320px;
+            background: white;
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(94, 53, 177, 0.15);
+            text-align: center;
+            z-index: 50;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 24px;
+            border-radius: 15px;
+            background: #E1BEE7;
+            outline: none;
+            border: 4px solid white;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #BA68C8;
+            cursor: pointer;
+            border: 4px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+            background-size: 60%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .instruction {
+            margin-top: 10px;
+            color: #7B1FA2;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* --- FLOATING HEARTS (While dragging) --- */
+        .mini-heart {
+            position: absolute;
+            color: #FF4081;
+            font-size: 1.5rem;
+            animation: floatUp 1s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-80px) scale(1.2); opacity: 0; }
+        }
+
+        /* --- FINAL CARD --- */
+        #final-msg {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 80%;
+            max-width: 320px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            z-index: 100;
+            border: 4px solid #CE93D8;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        /* Add this to the style section */
+        .couple-photo {
+            width: 150px;           /* Increased size */
+            height: 150px;          /* Increased size */
+            object-fit: cover;      /* Ensures image fills the box perfectly */
+            border-radius: 20px;    /* Rounded corners (Soft Square) */
+            border: 5px solid #E91E63; /* Cute Pink border */
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white; /* Fallback if image loads slowly */}
+
+    </style>
+</head>
+<body>
+
+    <a href="../index.html" class="back-btn">← Home</a>
+
+    <h1>Need a Hug?</h1>
+
+    <div class="stage">
+        <div class="bunny-wrapper" id="wrap-left">
+            <div class="name-tag">
+                <input type="text" class="name-input" value="Me" placeholder="Name">
+            </div>
+            <div class="bunny">
+                <svg viewBox="0 0 100 100">
+                    <path d="M30,35 Q20,5 40,5 Q50,5 45,35" fill="#BBDEFB" stroke="#90CAF9" stroke-width="2"/>
+                    <path d="M70,35 Q80,5 60,5 Q50,5 55,35" fill="#BBDEFB" stroke="#90CAF9" stroke-width="2"/>
+                    <path d="M35,25 Q30,15 40,15" fill="none" stroke="#E3F2FD" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M20,90 Q15,40 50,35 Q85,40 80,90 L20,90" fill="#BBDEFB" />
+                    <ellipse cx="50" cy="70" rx="20" ry="15" fill="white" />
+                    <g class="eyes">
+                        <circle cx="35" cy="55" r="4" fill="#1565C0" />
+                        <circle cx="65" cy="55" r="4" fill="#1565C0" />
+                    </g>
+                    <ellipse cx="25" cy="62" rx="6" ry="3" fill="#F48FB1" class="blush" id="blush-left"/>
+                    <ellipse cx="75" cy="62" rx="6" ry="3" fill="#F48FB1" class="blush" id="blush-right"/>
+                    <path d="M45,62 Q50,66 55,62" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"/>
+                    <ellipse cx="30" cy="75" rx="8" ry="6" fill="#E3F2FD" />
+                    <ellipse cx="70" cy="75" rx="8" ry="6" fill="#E3F2FD" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="bunny-wrapper" id="wrap-right">
+            <div class="name-tag">
+                <input type="text" class="name-input" value="You" placeholder="Name">
+            </div>
+            <div class="bunny">
+                <svg viewBox="0 0 100 100">
+                    <path d="M30,35 Q20,5 40,5 Q50,5 45,35" fill="#F8BBD0" stroke="#F48FB1" stroke-width="2"/>
+                    <path d="M70,35 Q80,5 60,5 Q50,5 55,35" fill="#F8BBD0" stroke="#F48FB1" stroke-width="2"/>
+                    <path d="M20,90 Q15,40 50,35 Q85,40 80,90 L20,90" fill="#F8BBD0" />
+                    <ellipse cx="50" cy="70" rx="20" ry="15" fill="white" />
+                    <g class="eyes" style="animation-delay: 0.2s">
+                        <circle cx="35" cy="55" r="4" fill="#880E4F" />
+                        <circle cx="65" cy="55" r="4" fill="#880E4F" />
+                    </g>
+                    <ellipse cx="25" cy="62" rx="6" ry="3" fill="#E91E63" class="blush" />
+                    <ellipse cx="75" cy="62" rx="6" ry="3" fill="#E91E63" class="blush" />
+                    <path d="M45,62 Q50,66 55,62" fill="none" stroke="#880E4F" stroke-width="2" stroke-linecap="round"/>
+                     <ellipse cx="30" cy="75" rx="8" ry="6" fill="#FCE4EC" />
+                    <ellipse cx="70" cy="75" rx="8" ry="6" fill="#FCE4EC" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="grass"></div>
+    </div>
+
+    <div class="controls-container" id="controls">
+        <input type="range" min="0" max="100" value="0" id="hugSlider" oninput="updateHug()">
+        <div class="instruction">Slide to Hug!</div>
+    </div>
+
+    <div id="final-msg">
+        <h2 style="color: #7B1FA2; margin-top: 0;">Warm Hugs! 🤗</h2>
+        <p style="color: #555; font-size: 1.2rem; line-height: 1.5;">
+            Even when we are apart, I am sending you the tightest, warmest hug imaginable.<br>
+            <b>Happy Hug Day!</b>
+        </p>
+    </div>
+    <audio id="bg-music" loop>
+    <source src="../assets/music.mp3" type="audio/mpeg"> </audio>
+
+    <script>
+        const slider = document.getElementById('hugSlider');
+        const leftWrap = document.getElementById('wrap-left');
+        const rightWrap = document.getElementById('wrap-right');
+        const blushes = document.querySelectorAll('.blush');
+        const controls = document.getElementById('controls');
+        
+        let isComplete = false;
+        let lastHeartTime = 0;
+
+        function updateHug() {
+            if (isComplete) return;
+
+            const val = slider.value;
+            
+            // LOGIC FOR MOVEMENT
+            // Stage is 360px wide. Bunnies are 120px wide (wrapper).
+            // Left bunny is at 0. Right bunny is at 360 - 120 = 240.
+            // Center is 180.
+            // Left bunny center is 60. Needs to move to 180 - 60 (half bunny size) = 120.
+            // Move Distance = 60px to right.
+            // Let's make them overlap slightly for a hug -> Move 80px.
+            
+            const maxMove = 80; 
+            const moveDist = (val / 100) * maxMove;
+            
+            // Hop Calculation (Sine wave based on slider value)
+            // Bounces slightly as you drag
+            const hopHeight = Math.abs(Math.sin(val * 0.15)) * 15;
+            
+            // Apply Transform
+            // Left moves Positive X, Right moves Negative X
+            leftWrap.style.transform = `translate(${moveDist}px, -${hopHeight}px)`;
+            rightWrap.style.transform = `translate(-${moveDist}px, -${hopHeight}px)`;
+
+            // Dynamic Blushing (Opactiy 0.3 -> 1.0)
+            const blushOpacity = 0.3 + (val / 100) * 0.7;
+            blushes.forEach(b => b.style.opacity = blushOpacity);
+
+            // Random Hearts while dragging
+            const now = Date.now();
+            if (val > 10 && val < 90 && (now - lastHeartTime > 200)) {
+                spawnMiniHeart();
+                lastHeartTime = now;
+            }
+
+            // Completion
+            if (val >= 100) {
+                success();
+            }
+        }
+
+        function spawnMiniHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('mini-heart');
+            heart.innerText = "❤️";
+            
+            // Random X position near center
+            const randomX = (window.innerWidth / 2) + (Math.random() * 60 - 30);
+            heart.style.left = randomX + 'px';
+            heart.style.top = '220px'; 
+            
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1000);
+        }
+
+        function success() {
+            isComplete = true;
+            slider.disabled = true;
+
+            // Final Squish Position
+            // Translate X is kept at maxMove (80px)
+            leftWrap.style.transform = `translate(80px, 0) scale(1.1, 0.9)`;
+            rightWrap.style.transform = `translate(-80px, 0) scale(1.1, 0.9)`;
+            
+            // Bounce back
+            setTimeout(() => {
+                leftWrap.style.transform = `translate(75px, 0) scale(1, 1)`;
+                rightWrap.style.transform = `translate(-75px, 0) scale(1, 1)`;
+            }, 300);
+
+            // Hide Slider
+            controls.style.opacity = '0';
+            controls.style.pointerEvents = 'none';
+
+            // Confetti
+            confetti({
+                particleCount: 200,
+                spread: 120,
+                origin: { y: 0.6 },
+                colors: ['#F48FB1', '#90CAF9', '#FFFFFF']
+            });
+
+            // Show Message
+            setTimeout(() => {
+                document.getElementById('final-msg').style.transform = "translate(-50%, -50%) scale(1)";
+            }, 800);
+        }
+    </script>
+</body>
+</html>
