@@ -8,19 +8,12 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        /* --- GLOBAL THEME (Solid Colors, No Gradients) --- */
+        /* --- GLOBAL THEME --- */
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Patrick Hand', cursive;
-            background-color: #FFFDF5; /* Creamy Paper Background */
-            color: #5D4037; /* Warm Brown Text */
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0; font-family: 'Patrick Hand', cursive;
+            background-color: #FFFDF5; color: #5D4037;
+            overflow-x: hidden; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; -webkit-tap-highlight-color: transparent;
         }
 
         .back-btn {
@@ -28,168 +21,102 @@
             text-decoration: none; color: #D32F2F;
             background: white; border: 2px solid #FFCDD2;
             padding: 8px 15px; border-radius: 20px;
-            font-weight: bold; z-index: 100;
-            box-shadow: 3px 3px 0px #FFCDD2;
+            font-weight: bold; z-index: 100; box-shadow: 3px 3px 0px #FFCDD2;
         }
 
         h1 {
-            font-family: 'Fredoka', sans-serif;
-            text-align: center;
-            color: #D32F2F; /* Deep Red */
-            margin: 10px 0 20px 0;
-            font-size: 2.5rem;
+            font-family: 'Fredoka', sans-serif; text-align: center; color: #D32F2F;
+            margin: 10px 0 20px 0; font-size: 2.5rem;
         }
 
-        /* --- PAGE SECTIONS --- */
+        /* --- SECTIONS --- */
         .page-section {
-            display: none;
-            width: 100%;
-            min-height: 100vh;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-            opacity: 0;
-            transition: opacity 1s ease;
+            display: none; width: 100%; min-height: 100vh;
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box;
+            opacity: 0; transition: opacity 1s ease;
         }
         .page-section.active { display: flex; opacity: 1; }
 
-        /* --- STAGE 1: THE PUZZLE --- */
+        /* --- STAGE 1: PUZZLE --- */
         .puzzle-frame {
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 10px 0 #E0E0E0; /* 3D Solid Shadow */
-            border: 4px solid #5D4037;
+            background: white; padding: 15px; border-radius: 15px;
+            box-shadow: 0 10px 0 #E0E0E0; border: 4px solid #5D4037;
         }
-
         .puzzle-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 2px;
-            background: #FFCDD2;
-            border: 2px solid #5D4037;
+            display: grid; grid-template-columns: repeat(3, 100px); grid-template-rows: repeat(3, 100px);
+            gap: 2px; background: #FFCDD2; border: 2px solid #5D4037;
         }
-
         .puzzle-piece {
             width: 100px; height: 100px;
-            background-image: url('puzzle-image.jpg'); /* YOUR PHOTO HERE */
-            background-size: 300px 300px;
-            cursor: grab;
-            transition: transform 0.2s;
-            /* Placeholder color if image fails */
-            background-color: #FF8A80; 
+            background-image: url('puzzle-image.jpg'); /* YOUR PHOTO */
+            background-size: 300px 300px; cursor: grab; transition: transform 0.2s;
+            background-color: #FF8A80;
         }
         .puzzle-piece:active { cursor: grabbing; transform: scale(1.05); z-index: 10; }
 
-        .progress-box {
-            width: 320px; margin-top: 25px; text-align: center;
-        }
+        .progress-box { width: 320px; margin-top: 25px; text-align: center; }
         .progress-bar-bg {
-            width: 100%; height: 20px;
-            background: #FFE0B2; border-radius: 10px;
+            width: 100%; height: 20px; background: #FFE0B2; border-radius: 10px;
             border: 2px solid #5D4037; overflow: hidden;
         }
-        .progress-bar-fill {
-            height: 100%; width: 0%;
-            background: #FF7043; transition: width 0.3s;
-        }
-        .comment-text {
-            margin-top: 10px; height: 25px;
-            font-weight: bold; color: #D32F2F; font-size: 1.2rem;
-        }
+        .progress-bar-fill { height: 100%; width: 0%; background: #FF7043; transition: width 0.3s; }
+        .comment-text { margin-top: 10px; height: 25px; font-weight: bold; color: #D32F2F; font-size: 1.2rem; }
 
         .action-btn {
-            margin-top: 20px; padding: 12px 30px;
-            background: #FF7043; color: white; border: none;
-            border-radius: 50px; font-family: 'Fredoka', sans-serif;
-            font-size: 1.2rem; cursor: pointer;
-            border: 3px solid #5D4037;
-            box-shadow: 4px 4px 0 #5D4037; /* Retro solid shadow */
-            transition: transform 0.1s;
+            margin-top: 20px; padding: 12px 30px; background: #FF7043; color: white; border: none;
+            border-radius: 50px; font-family: 'Fredoka', sans-serif; font-size: 1.2rem; cursor: pointer;
+            border: 3px solid #5D4037; box-shadow: 4px 4px 0 #5D4037; transition: transform 0.1s;
         }
         .action-btn:active { transform: translate(4px, 4px); box-shadow: 0 0 0; }
 
         /* --- STAGE 2: TRANSITION --- */
-        .trans-msg {
-            font-size: 2rem; text-align: center;
-            color: #D32F2F; opacity: 0; transition: opacity 0.5s;
-            max-width: 80%;
-        }
+        .trans-msg { font-size: 2rem; text-align: center; color: #D32F2F; opacity: 0; transition: opacity 0.5s; max-width: 80%; }
 
-        /* --- STAGE 3: MEMORY LANE (Polaroid Style) --- */
-        .memory-container {
-            width: 100%; max-width: 500px;
-            padding: 40px 20px;
-        }
-
+        /* --- STAGE 3: MEMORY LANE --- */
+        .memory-container { width: 100%; max-width: 500px; padding: 40px 20px; }
         .polaroid {
-            background: white;
-            padding: 15px 15px 40px 15px; /* Bottom padding for caption */
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
-            transform: rotate(-2deg);
-            margin-bottom: 50px;
-            opacity: 0; transform: translateY(50px) rotate(-2deg);
-            transition: all 0.8s ease;
-            text-align: center;
-            border: 1px solid #EEE;
+            background: white; padding: 15px 15px 40px 15px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+            transform: rotate(-2deg); margin-bottom: 50px; opacity: 0; transform: translateY(50px) rotate(-2deg);
+            transition: all 0.8s ease; text-align: center; border: 1px solid #EEE;
         }
         .polaroid:nth-child(even) { transform: translateY(50px) rotate(2deg); }
         .polaroid.visible { opacity: 1; transform: translateY(0) rotate(-2deg); }
         .polaroid:nth-child(even).visible { transform: translateY(0) rotate(2deg); }
-
-        .polaroid img {
-            width: 100%; border-radius: 0; /* Square edges for polaroid look */
-            border: 1px solid #EEE;
-        }
+        .polaroid img { width: 100%; border: 1px solid #EEE; }
         .date-tag {
-            display: inline-block; background: #FFCCBC;
-            padding: 2px 10px; font-size: 0.9rem;
-            color: #5D4037; margin-top: 10px; font-weight: bold;
-            transform: rotate(-5deg);
+            display: inline-block; background: #FFCCBC; padding: 2px 10px; font-size: 0.9rem;
+            color: #5D4037; margin-top: 10px; font-weight: bold; transform: rotate(-5deg);
         }
         .caption { margin-top: 10px; font-size: 1.1rem; color: #555; }
 
         /* --- STAGE 4: PROPOSAL --- */
         .proposal-card {
-            background: white; padding: 40px 20px;
-            border-radius: 20px; text-align: center;
-            border: 5px solid #FF8A80;
-            max-width: 90%;
-            box-shadow: 10px 10px 0 #FFCDD2;
+            background: white; padding: 40px 20px; border-radius: 20px; text-align: center;
+            border: 5px solid #FF8A80; max-width: 90%; box-shadow: 10px 10px 0 #FFCDD2;
         }
-        .profile-pic {
-            width: 150px; height: 150px; object-fit: cover;
-            border-radius: 50%; border: 5px solid #FF7043;
-            margin-bottom: 20px;
-        }
+        /* Buttons aligned nicely */
         .btn-group {
-            display: flex; gap: 20px; justify-content: center; margin-top: 30px;
-            position: relative; height: 60px;
+            display: flex; justify-content: center; align-items: center; gap: 30px;
+            margin-top: 30px; position: relative; width: 100%;
         }
-        .yes-btn {
-            background: #66BB6A; border-color: #33691E; color: white;
-        }
+        .yes-btn { background: #66BB6A; border-color: #33691E; color: white; z-index: 2; }
         .no-btn {
             background: #EF5350; border-color: #B71C1C; color: white;
-            position: absolute; /* Allows moving */
-            transition: top 0.2s, left 0.2s;
+            transition: transform 0.2s ease; z-index: 1;
         }
-        /* Add this to the style section */
+
+        /* --- STAGE 5: FINAL SUCCESS CARD --- */
+        .success-card {
+            background: white; padding: 30px; border-radius: 20px; text-align: center;
+            border: 5px solid #E91E63; max-width: 320px; width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
         .couple-photo {
-            width: 150px;           /* Increased size */
-            height: 150px;          /* Increased size */
-            object-fit: cover;      /* Ensures image fills the box perfectly */
-            border-radius: 20px;    /* Rounded corners (Soft Square) */
-            border: 5px solid #E91E63; /* Cute Pink border */
-            margin-bottom: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            background-color: white; /* Fallback if image loads slowly */}
+            width: 150px; height: 150px; object-fit: cover; border-radius: 20px;
+            border: 5px solid #E91E63; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: block; margin-left: auto; margin-right: auto; background-color: white;
+        }
 
     </style>
 </head>
@@ -200,16 +127,14 @@
 
     <section id="stage-1" class="page-section active">
         <h1>Can you put us together? 🧩</h1>
+        Long press or drag the pieces to solve the puzzle and reveal a special memory of us! <br>(Hint: It's one of my favorite photos of us ❤️)
         
         <div class="puzzle-frame">
-            <div class="puzzle-grid" id="grid">
-                </div>
+            <div class="puzzle-grid" id="grid"></div>
         </div>
 
         <div class="progress-box">
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="progress"></div>
-            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress"></div></div>
             <div class="comment-text" id="comment">Let's start!</div>
         </div>
 
@@ -226,27 +151,55 @@
 
         <div class="memory-container">
             <div class="polaroid">
-                <img src="mem1.jpg" alt="Memory 1"> <div class="date-tag">Day 1</div>
-                <div class="caption">Where it all started. I knew you were special.</div>
+                <img src="https://i.postimg.cc/tgXCSksM/IMG-20230909-WA0024.jpg" alt="Memory"> <div class="date-tag">The Beginning, Our First Photo</div>
+                <div class="caption">Sei prothom planned berono.. bikele jhil par ee dariye golpo arr tor oi misti hasi ta akhono mone pore.. jantam oo na pore kichu hobe kina but akta feeling chole esechilo mone</div>
             </div>
-
             <div class="polaroid">
-                <img src="mem2.jpg" alt="Memory 2"> <div class="date-tag">Best Day</div>
-                <div class="caption">That time we laughed until our stomachs hurt.</div>
+                <img src="https://i.postimg.cc/vm38pn9H/IMG-20230913-WA0055.jpg" alt="Memory"> <div class="date-tag">First Date</div>
+                <div class="caption">Ecopark er oi moja ta.. finally relationship ee asa ta.. and and let's not forget bristi te hat dhore dourano ta.. prothom thekei sob romantic hoye jacchilooo jeno...</div>
             </div>
-
             <div class="polaroid">
-                <img src="mem3.jpg" alt="Memory 3"> <div class="date-tag">Tough Times</div>
-                <div class="caption">Even when things were hard, you stayed. Thank you.</div>
+                <img src="https://i.postimg.cc/431cwn2Z/IMG-20230924-WA0029.jpg" alt="Memory"> <div class="date-tag">Movie dekhte jawa</div>
+                <div class="caption">Sukoon chilo sei din ta.. CC1 ee movie dekhte gechilam.. arr sei gate ee jigessa korlo \"Mam 18+ too\".. kotoi na hesechi ota bhebe.. jodio dekhte to cuteeee sa baccha ee lagchili.. hehe</div>
+            </div>
+            <div class="polaroid">
+                <img src="https://i.postimg.cc/qvmDCMHZ/IMG-20241112-205504.jpg" alt="Memory"> <div class="date-tag">First Durga Pujo timee</div>
+                <div class="caption">Hehe ei din ta.. ake opor k dewa jama pore pujo pandel.. then church and finally princep ghat.. best ghora till now nki? Koto boroo plan chilo arr koto ee na happy feel korechilam purotar pore.. that romantic connection.. hayee</div>
+            </div>
+            <div class="polaroid">
+                <img src="https://i.postimg.cc/C5RfF7hL/IMG-20231213-WA0018.jpg" alt="Memory"> <div class="date-tag">My Birthday Celebration</div>
+                <div class="caption">Hotat kore deke niye cake katiye nili bol arr janteo dili na oi jonno dakchis.. plus uk ota amr first time kono person oi bhabe amr bday manalo.. thanks love for every effort you made for me... it was the best experience I had...</div>
+            </div>
+            <div class="polaroid">
+                <img src="https://i.postimg.cc/QttFbmWk/IMG20231223135043.jpg" alt="Memory"> <div class="date-tag">Final date of the year at Victoria</div>
+                <div class="caption">At one of the love places of kolkata, jekhane tor koto je cute moments dekhechilam.. christmas er lightning enjoy korechilam.. arr amra jani how much we enjoyed that day.. was very unique nischoi..</div>
+            </div>
+            <div class="polaroid">
+                <img src="https://i.postimg.cc/YSZXbn96/IMG-20241112-205611.jpg" alt="Memory"> <div class="date-tag">Cutie r birthday celebration</div>
+                <div class="caption">Heheee tor first birthday.. amr khepu/santa r first birthday.. arr plan to onnk korechilam toke surprise dewar jonno kcihu ta success oo peyechilam maybe.. sob theke difficult chilo hocche oi same bus ee uthe surprise kora ta.. otar jonno 1.5 hrs dariyechilam ooo.. and then those reactions gift gulo peye.. sei octi then chocos.. I love giving surprises to youuu</div>
+            </div>
+            <div class="polaroid">
+                <img src="https://i.postimg.cc/wx1Vxcbm/IMG20240426173651.jpg" alt="Memory"> <div class="date-tag">Arambagh er time</div>
+                <div class="caption">Eta to kikore ee bhulbo ami yaar... lukiye karur jonno first time 3 hrs travel kore dekha korte gechilam.. and it was worth every effort.. sei kole sue mathai hat bolano ta.. I still crave otar jonno majhe majhei.. the most peaceful thing felt.. I love you..</div>
+            </div>
+            <div class="polaroid">
+                <img src="../assets/mem9.jpeg" alt="Memory"> <div class="date-tag">Your biggest birthday celeration</div>
+                <div class="caption">So much planning, so much love, so much joy. Planned purota and executed it. Pluss the efforts, pyar to karta hu.</div>
+            </div>
+            <div class="polaroid">
+                <img src="../assets/mem10.jpg" alt="Memory"> <div class="date-tag">Bengali Dev hit with you</div>
+                <div class="caption">Some of the most beautiful moments we've shared together. I still wait for more of them with you.</div>
             </div>
         </div>
 
-        <button class="action-btn" onclick="goToFinal()" style="margin-bottom: 50px;">One Final Step... ❤️</button>
+        <button class="action-btn" onclick="goToFinal()" style="margin-bottom: 50px;">One Final Question... ❤️</button>
     </section>
 
     <section id="stage-4" class="page-section">
         <div class="proposal-card">
-            <img src="puzzle-image.jpg" class="profile-pic"> <h1>Will you be my Valentine Forever?</h1>
+            <img src="https://i.postimg.cc/QttFbmWk/IMG20231223135043.jpg" class="couple-photo"> 
+            
+            <h1 style="font-size: 2.2rem; margin-bottom: 10px;">Will you be my Valentine Forever?</h1>
             <p style="font-size: 1.3rem;">And watch life unfold together, marrying me?</p>
             
             <div class="btn-group">
@@ -255,30 +208,41 @@
             </div>
         </div>
     </section>
+
+    <section id="stage-5" class="page-section">
+        <div class="success-card">
+            <img src="../assets/IMG-20250223-WA0059.jpg" class="couple-photo"> 
+            <h1 style="color: #E91E63; margin-top: 10px;">YAY! You said YESSS! 💍</h1>
+            <p style="font-size: 1.3rem; color: #555;">
+                You just made me the happiest person alive.<br> Trust me I need you real badly. Please ja kore hok bas amar sathe future ta rakhis, I can't imagine life without you. <br>
+                <b>I Love You!</b>
+            </p>
+            <div style="font-size: 3rem; margin-top: 15px;">❤️✨</div>
+        </div>
+    </section>
+
     <audio id="bg-music" loop>
-    <source src="../assets/music.mp3" type="audio/mpeg"> </audio>
+        <source src="../assets/music.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
         // --- CONFIG ---
-        // Change these URLs to your actual image files in the pages folder
-        // Example: 'puzzle-image.jpg'
-        const puzzleImage = 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&auto=format&fit=crop'; 
-        const comments = ["Good start!", "Perfect fit!", "Almost there!", "You're doing great!", "Just like us!", "Beautiful!", "Love it!", "Complete!"];
+        // REPLACE 'puzzle-image.jpg' with your actual image file inside pages folder
+        const puzzleImage = '../assets/IMG-20250223-WA0059.jpg'; 
+        const comments = ["Good start!", "Perfect fit!", "Almost there!", "Doing great!", "Just like us!", "Beautiful!", "Love it!", "Complete!"];
 
-        // --- STATE ---
+        // --- STATE & ELEMENTS ---
         let pieces = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let shuffled = [];
         let draggedIdx = null;
-
-        // --- ELEMENTS ---
         const grid = document.getElementById('grid');
         const progress = document.getElementById('progress');
         const comment = document.getElementById('comment');
 
         // --- PUZZLE LOGIC ---
         function shuffleBoard() {
-            // Fisher-Yates Shuffle
             shuffled = [...pieces];
+            // Simple shuffle
             for (let i = shuffled.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -293,42 +257,24 @@
                 const div = document.createElement('div');
                 div.className = 'puzzle-piece';
                 div.draggable = true;
-                
-                // Calculate background position based on the Original Value (val)
-                // Grid is 3x3. Row = floor(val/3), Col = val%3
                 const row = Math.floor(val / 3);
                 const col = val % 3;
                 div.style.backgroundImage = `url('${puzzleImage}')`;
                 div.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
                 
-                // Correct position highlight
                 if (val === index) {
-                    div.style.border = "2px solid #66BB6A"; // Green hint
+                    div.style.border = "2px solid #66BB6A"; // Highlight correct
                     div.style.zIndex = 1;
                 }
 
-                // Drag Events
                 div.addEventListener('dragstart', () => draggedIdx = index);
                 div.addEventListener('dragover', (e) => e.preventDefault());
                 div.addEventListener('drop', () => swapPieces(index));
-
-                // Touch Events (Mobile)
-                div.addEventListener('touchstart', (e) => {
-                    draggedIdx = index;
-                    // Prevent scrolling while touching a piece
-                    // e.preventDefault(); 
-                }, {passive: true});
                 
-                div.addEventListener('touchend', (e) => {
-                    // Simple tap-to-swap mechanic for mobile is easier than drag
-                    // Or implement complex touch drag. 
-                    // Let's use a "Tap two to swap" for mobile robustness?
-                    // Actually, let's try mapping drop target.
-                    // For simplicity in this logic: Drop is tricky on mobile without massive code.
-                    // Fallback: Click first, Click second to swap.
-                    if (draggedIdx !== null && draggedIdx !== index) {
-                        swapPieces(index);
-                    }
+                // Simple Touch Support
+                div.addEventListener('touchstart', () => draggedIdx = index, {passive: true});
+                div.addEventListener('touchend', () => {
+                    if (draggedIdx !== null && draggedIdx !== index) swapPieces(index);
                 });
 
                 grid.appendChild(div);
@@ -337,10 +283,7 @@
 
         function swapPieces(targetIdx) {
             if (draggedIdx === null) return;
-            
-            // Swap in array
             [shuffled[draggedIdx], shuffled[targetIdx]] = [shuffled[targetIdx], shuffled[draggedIdx]];
-            
             draggedIdx = null;
             renderGrid();
             updateProgress();
@@ -348,17 +291,11 @@
 
         function updateProgress() {
             let correct = 0;
-            shuffled.forEach((val, idx) => {
-                if (val === idx) correct++;
-            });
-
+            shuffled.forEach((val, idx) => { if (val === idx) correct++; });
             const pct = (correct / 9) * 100;
             progress.style.width = pct + '%';
             
-            if (correct > 0 && correct < 9) {
-                comment.innerText = comments[Math.floor(Math.random() * (comments.length - 1))];
-            }
-
+            if (correct > 0 && correct < 9) comment.innerText = comments[Math.floor(Math.random() * (comments.length - 1))];
             if (correct === 9) {
                 comment.innerText = "Completed! ❤️";
                 setTimeout(finishPuzzle, 500);
@@ -367,10 +304,8 @@
 
         function finishPuzzle() {
             const sound = document.getElementById('clap-sound');
-            if(sound) sound.play().catch(e => console.log("Audio auto-play blocked"));
-            
+            if(sound) sound.play().catch(e=>{});
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            
             setTimeout(() => {
                 document.getElementById('stage-1').classList.remove('active');
                 playTransitions();
@@ -379,23 +314,14 @@
 
         // --- TRANSITIONS ---
         function playTransitions() {
-            const stage2 = document.getElementById('stage-2');
-            stage2.classList.add('active');
+            document.getElementById('stage-2').classList.add('active');
             const txt = document.getElementById('trans-text');
-            
             const msgs = [
-                "Congrats! 🎉",
-                "I love your efforts ❤️",
-                "Here is a gift from my side 🎁",
-                "Let's take a walk down memory lane..."
+                "Congrats! 🎉", "I love your efforts ❤️", "Here is a gift from my side 🎁", "Let's take a walk down memory lane..."
             ];
-
             let i = 0;
             function showNext() {
-                if(i >= msgs.length) {
-                    startMemoryLane();
-                    return;
-                }
+                if(i >= msgs.length) { startMemoryLane(); return; }
                 txt.style.opacity = 0;
                 setTimeout(() => {
                     txt.innerText = msgs[i];
@@ -411,13 +337,9 @@
         function startMemoryLane() {
             document.getElementById('stage-2').classList.remove('active');
             document.getElementById('stage-3').classList.add('active');
-
             const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) entry.target.classList.add('visible');
-                });
-            }, { threshold: 0.2 });
-
+                entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+            }, { threshold: 0.1 });
             document.querySelectorAll('.polaroid').forEach(p => observer.observe(p));
         }
 
@@ -429,22 +351,20 @@
         // --- PROPOSAL ---
         function moveNo() {
             const btn = document.getElementById('no-btn');
-            // Move within the button group area roughly
+            // Move randomly but keep within reasonable view
             const x = (Math.random() * 200) - 100;
             const y = (Math.random() * 200) - 100;
-            
-            // Use transform to avoid breaking layout flow
             btn.style.transform = `translate(${x}px, ${y}px)`;
         }
 
         function sheSaidYes() {
             confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
-            alert("YAY! I promise to make you the happiest! ❤️💍");
+            // Hide Proposal, Show Success Card
+            document.getElementById('stage-4').classList.remove('active');
+            document.getElementById('stage-5').classList.add('active');
         }
 
-        // Init
         shuffleBoard();
-
     </script>
 </body>
-</html> 
+</html>
